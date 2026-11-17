@@ -83,7 +83,7 @@ func imageConvert() *cobra.Command {
 			if err != nil {
 				return out.Usage("%v", err)
 			}
-			return runImageBatch(cmd, args, "", fmtOut, func(in, dest string) error {
+			return runImageBatch(cmd, args, ".converted", fmtOut, func(in, dest string) error {
 				img, _, err := imgx.Open(in)
 				if err != nil {
 					return err

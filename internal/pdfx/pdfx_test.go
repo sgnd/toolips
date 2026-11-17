@@ -65,6 +65,30 @@ func TestMergeSplitCompressRotate(t *testing.T) {
 	}
 }
 
+func TestValidationAndDefaultOut(t *testing.T) {
+	ctx := context.Background()
+	if err := pdfx.Merge(ctx, []string{"a.pdf"}, "out.pdf"); err == nil {
+		t.Fatal("merge with one file should fail")
+	}
+	if err := pdfx.FromImage(ctx, nil, "out.pdf"); err == nil {
+		t.Fatal("from-image with no files should fail")
+	}
+	if err := pdfx.Rotate(ctx, "in.pdf", "out.pdf", 45, nil); err == nil {
+		t.Fatal("rotate non-multiple of 90 should fail")
+	}
+	if err := pdfx.Watermark(ctx, "in.pdf", "out.pdf", "", "", nil); err == nil {
+		t.Fatal("empty watermark text should fail")
+	}
+	got := pdfx.DefaultOut("/tmp/doc.pdf", ".compressed", ".pdf")
+	want := filepath.Join("/tmp", "doc.compressed.pdf")
+	if got != want {
+		t.Fatalf("DefaultOut=%q want %q", got, want)
+	}
+	if pdfx.DefaultOut("doc.pdf", ".rotated", "") != "doc.rotated.pdf" {
+		t.Fatalf("DefaultOut preserve ext: %q", pdfx.DefaultOut("doc.pdf", ".rotated", ""))
+	}
+}
+
 func writePNG(t *testing.T, path string, w, h int) {
 	t.Helper()
 	img := image.NewRGBA(image.Rect(0, 0, w, h))

@@ -64,6 +64,16 @@ func TestParseFormat(t *testing.T) {
 	}
 }
 
+func TestRotateCropErrors(t *testing.T) {
+	img := image.NewRGBA(image.Rect(0, 0, 8, 8))
+	if _, err := imgx.Rotate(img, 45); err == nil {
+		t.Fatal("expected rotate error")
+	}
+	if _, err := imgx.Crop(img, 0, 0, 20, 20); err == nil {
+		t.Fatal("expected crop bounds error")
+	}
+}
+
 func TestConvertGIFCompress(t *testing.T) {
 	dir := t.TempDir()
 	src := filepath.Join(dir, "src.png")

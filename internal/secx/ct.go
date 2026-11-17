@@ -42,7 +42,8 @@ func (c CTResult) Text() string {
 	}
 	for i := 0; i < limit; i++ {
 		e := c.Entries[i]
-		fmt.Fprintf(&b, "  %s  %s → %s  %s\n", e.CommonName, e.NotBefore, e.NotAfter, e.IssuerName)
+		fmt.Fprintf(&b, "  %s  %s → %s  %s\n",
+			safeText(e.CommonName), e.NotBefore, e.NotAfter, safeText(e.IssuerName))
 	}
 	if len(c.Entries) > limit {
 		fmt.Fprintf(&b, "  … and %d more\n", len(c.Entries)-limit)
@@ -114,12 +115,12 @@ func SearchCT(domain string, client *http.Client, baseURL string) CTResult {
 		seen[key] = true
 		names := splitNames(row.NameValue)
 		res.Entries = append(res.Entries, CTEntry{
-			IssuerName:   row.IssuerName,
-			CommonName:   row.CommonName,
-			NameValue:    row.NameValue,
+			IssuerName:   safeText(row.IssuerName),
+			CommonName:   safeText(row.CommonName),
+			NameValue:    safeText(row.NameValue),
 			NotBefore:    row.NotBefore,
 			NotAfter:     row.NotAfter,
-			SerialNumber: row.SerialNumber,
+			SerialNumber: safeText(row.SerialNumber),
 			DNSNames:     names,
 		})
 	}
@@ -135,7 +136,7 @@ func splitNames(s string) []string {
 	for _, p := range parts {
 		p = strings.TrimSpace(p)
 		if p != "" {
-			out = append(out, p)
+			out = append(out, safeText(p))
 		}
 	}
 	return out

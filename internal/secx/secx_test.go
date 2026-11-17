@@ -35,6 +35,32 @@ func TestSecretScan(t *testing.T) {
 	if res.Count < 2 {
 		t.Fatalf("expected findings, got %+v", res)
 	}
+	for _, f := range res.Findings {
+		if strings.Contains(f.Snippet, "AKIAIOSFODNN7EXAMPLE") || strings.Contains(f.Snippet, "ghp_abcdefghijklmnopqrstuvwxyz0123456789") {
+			t.Fatalf("snippet leaked secret: %q", f.Snippet)
+		}
+		if !strings.Contains(f.Snippet, "[redacted]") {
+			t.Fatalf("expected [redacted] in snippet: %q", f.Snippet)
+		}
+	}
+}
+
+func TestCTSearchEscapesControls(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`[{"issuer_name":"CA\u001b[31m","common_name":"evil.com","name_value":"evil.com","not_before":"2024-01-01","not_after":"2025-01-01","serial_number":"1"}]`))
+	}))
+	defer srv.Close()
+	res := secx.SearchCT("evil.com", srv.Client(), srv.URL)
+	if res.Error != "" || res.Count != 1 {
+		t.Fatalf("%+v", res)
+	}
+	if strings.Contains(res.Entries[0].IssuerName, "\x1b") {
+		t.Fatalf("raw ESC in issuer: %q", res.Entries[0].IssuerName)
+	}
+	if !strings.Contains(res.Entries[0].IssuerName, `\x1b`) {
+		t.Fatalf("expected escaped ESC in %q", res.Entries[0].IssuerName)
+	}
 }
 
 func TestHeadersCheck(t *testing.T) {

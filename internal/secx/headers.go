@@ -31,7 +31,7 @@ func (h HeaderCheck) Text() string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "%s  grade %s (%d/100)\n", h.URL, h.Grade, h.Score)
 	for _, p := range h.Present {
-		fmt.Fprintf(&b, "  + %s: %s\n", p.Name, truncate(p.Value, 80))
+		fmt.Fprintf(&b, "  + %s: %s\n", p.Name, truncate(safeText(p.Value), 80))
 	}
 	for _, m := range h.Missing {
 		fmt.Fprintf(&b, "  - missing %s\n", m)
@@ -79,7 +79,7 @@ func CheckHeaders(url string, client *http.Client) HeaderCheck {
 			res.Missing = append(res.Missing, name)
 			continue
 		}
-		res.Present = append(res.Present, HeaderStatus{Name: name, Value: v})
+		res.Present = append(res.Present, HeaderStatus{Name: name, Value: safeText(v)})
 		points += per
 	}
 	res.Score = points

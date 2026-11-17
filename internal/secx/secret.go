@@ -107,13 +107,38 @@ func scanFile(path string) ([]Finding, error) {
 		text := sc.Text()
 		for _, r := range secretRules {
 			if loc := r.re.FindStringIndex(text); loc != nil {
-				snip := strings.TrimSpace(text)
-				if len(snip) > 100 {
-					snip = snip[:100] + "…"
-				}
-				out = append(out, Finding{File: path, Line: line, Rule: r.name, Snippet: snip})
+				out = append(out, Finding{
+					File:    path,
+					Line:    line,
+					Rule:    r.name,
+					Snippet: redactSnippet(text, loc[0], loc[1]),
+				})
 			}
 		}
 	}
 	return out, sc.Err()
+}
+
+// redactSnippet keeps nearby context but replaces the matched secret so
+// agent JSON/text never echoes the full credential (komando-style).
+func redactSnippet(line string, start, end int) string {
+	if start < 0 {
+		start = 0
+	}
+	if end > len(line) {
+		end = len(line)
+	}
+	if start > end {
+		start, end = end, start
+	}
+	const maxCtx = 24
+	left := line[:start]
+	if len(left) > maxCtx {
+		left = "…" + left[len(left)-maxCtx:]
+	}
+	right := line[end:]
+	if len(right) > maxCtx {
+		right = right[:maxCtx] + "…"
+	}
+	return safeText(strings.TrimSpace(left + "[redacted]" + right))
 }

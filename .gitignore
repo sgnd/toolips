@@ -1,6 +1,8 @@
 /bin/
 /bins/
 /dist/
+/.cache/
+/.staticcheck-cache/
 *.exe
 *.test
 *.out
