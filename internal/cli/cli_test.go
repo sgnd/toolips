@@ -227,3 +227,46 @@ func TestMissingInputIsNotFound(t *testing.T) {
 		}
 	}
 }
+
+func TestPDFVerbsWrite(t *testing.T) {
+	dir := t.TempDir()
+	img := filepath.Join(dir, "p.png")
+	writePNG(t, img, 40, 40)
+	a := filepath.Join(dir, "a.pdf")
+	b := filepath.Join(dir, "b.pdf")
+	for _, p := range []string{a, b} {
+		if code := runCaptured(t, []string{"pdf", "from-image", img, img, "--out", p, "-o", "json"}); code != 0 {
+			t.Fatalf("from-image exit %d", code)
+		}
+	}
+
+	cases := []struct {
+		name string
+		args []string
+		want string
+	}{
+		{"merge", []string{"pdf", "merge", a, b, "--out", filepath.Join(dir, "m.pdf")}, filepath.Join(dir, "m.pdf")},
+		{"split", []string{"pdf", "split", a, "--outdir", filepath.Join(dir, "split")}, filepath.Join(dir, "split")},
+		{"compress", []string{"pdf", "compress", a, "--out", filepath.Join(dir, "c.pdf")}, filepath.Join(dir, "c.pdf")},
+		{"rotate", []string{"pdf", "rotate", a, "--degrees", "180", "--out", filepath.Join(dir, "r.pdf")}, filepath.Join(dir, "r.pdf")},
+		{"watermark", []string{"pdf", "watermark", a, "--text", "DRAFT", "--out", filepath.Join(dir, "w.pdf")}, filepath.Join(dir, "w.pdf")},
+		{"to-image", []string{"pdf", "to-image", a, "--outdir", filepath.Join(dir, "imgs")}, filepath.Join(dir, "imgs")},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			dryArgs := append(append([]string{}, c.args...), "--dry-run", "-o", "json")
+			if code := runCaptured(t, dryArgs); code != 0 {
+				t.Fatalf("dry-run exit %d", code)
+			}
+			if _, err := os.Stat(c.want); err == nil {
+				t.Fatalf("dry-run wrote %s", c.want)
+			}
+			if code := runCaptured(t, append(c.args, "-o", "json")); code != 0 {
+				t.Fatalf("exit %d", code)
+			}
+			if _, err := os.Stat(c.want); err != nil {
+				t.Fatalf("missing output %s: %v", c.want, err)
+			}
+		})
+	}
+}
