@@ -1,8 +1,13 @@
 # toolips
 
+[![CI](https://github.com/sgnd/toolips/actions/workflows/ci.yml/badge.svg)](https://github.com/sgnd/toolips/actions/workflows/ci.yml)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
+[![toolips.xyz](https://img.shields.io/badge/web-toolips.xyz-0a7ea4)](https://toolips.xyz)
+
 **Everyday PDF, image and security tools — for people and AI agents.**
 
 One static binary. No accounts. No feature gates. JSON for agents, text for humans.
+Web: [toolips.xyz](https://toolips.xyz).
 
 ## Install
 
