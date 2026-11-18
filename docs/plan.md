@@ -55,11 +55,13 @@ yet. Every item must run locally in pure Go (no CGO). Priority: A first
 ## Phase 2: paid plan
 
 Starts only after phase 1 is done. Follows how komando's apps and cloud are built.
+toolips never builds login, accounts, plans, billing or checkout: they come
+from `efolusi/sso` and `efolusi/pay`. Items that need them say "via sso/pay".
 
 | # | Item | Status |
 |---|---|---|
 | 2.1 | Study komando-apps and komando-cloud; write the toolips design | open |
 | 2.2 | `efolusi/toolips-apps`: Mac, iPhone, iPad app over the CLI core | open |
-| 2.3 | `efolusi/toolips-cloud`: API, account, sync, billing, website | open |
+| 2.3 | `efolusi/toolips-cloud`: API, sync and website; account and billing via sso/pay | open |
 | 2.4 | Self-hosted: the cloud service can run on the user's own server | open |
-| 2.5 | Commercial: plans and pricing for apps and cloud, as in komando | open |
+| 2.5 | Commercial: plans and pricing for apps and cloud, as in komando; plans, billing and checkout via sso/pay | open |
