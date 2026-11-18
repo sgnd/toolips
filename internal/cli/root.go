@@ -110,7 +110,27 @@ func newRoot() *cobra.Command {
 
 	root.AddCommand(cmdVersion(), cmdList(), cmdGuide())
 	root.AddCommand(cmdPDF(), cmdImage(), cmdTLS(), cmdHeaders(), cmdSecret(), cmdCT())
+	markUsageErrors(root)
 	return root
+}
+
+// markUsageErrors makes every argument and flag mistake a USAGE error (exit 2)
+// by type, so it does not depend on cobra's message text.
+func markUsageErrors(cmd *cobra.Command) {
+	cmd.SetFlagErrorFunc(func(_ *cobra.Command, err error) error {
+		return out.Usage("%s", err.Error())
+	})
+	if args := cmd.Args; args != nil {
+		cmd.Args = func(c *cobra.Command, a []string) error {
+			if err := args(c, a); err != nil {
+				return out.Usage("%s", err.Error())
+			}
+			return nil
+		}
+	}
+	for _, sub := range cmd.Commands() {
+		markUsageErrors(sub)
+	}
 }
 
 func autoFormat() string {

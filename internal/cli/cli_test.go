@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"net"
 	"os"
 	"path/filepath"
 	"testing"
@@ -224,6 +225,104 @@ func TestMissingInputIsNotFound(t *testing.T) {
 	for _, args := range cases {
 		if code := runCaptured(t, args); code != out.ExitNotFound {
 			t.Errorf("%v: exit %d, want %d", args, code, out.ExitNotFound)
+		}
+	}
+}
+
+func TestPDFVerbsWrite(t *testing.T) {
+	dir := t.TempDir()
+	img := filepath.Join(dir, "p.png")
+	writePNG(t, img, 40, 40)
+	a := filepath.Join(dir, "a.pdf")
+	b := filepath.Join(dir, "b.pdf")
+	for _, p := range []string{a, b} {
+		if code := runCaptured(t, []string{"pdf", "from-image", img, img, "--out", p, "-o", "json"}); code != 0 {
+			t.Fatalf("from-image exit %d", code)
+		}
+	}
+
+	cases := []struct {
+		name string
+		args []string
+		want string
+	}{
+		{"merge", []string{"pdf", "merge", a, b, "--out", filepath.Join(dir, "m.pdf")}, filepath.Join(dir, "m.pdf")},
+		{"split", []string{"pdf", "split", a, "--outdir", filepath.Join(dir, "split")}, filepath.Join(dir, "split")},
+		{"compress", []string{"pdf", "compress", a, "--out", filepath.Join(dir, "c.pdf")}, filepath.Join(dir, "c.pdf")},
+		{"rotate", []string{"pdf", "rotate", a, "--degrees", "180", "--out", filepath.Join(dir, "r.pdf")}, filepath.Join(dir, "r.pdf")},
+		{"watermark", []string{"pdf", "watermark", a, "--text", "DRAFT", "--out", filepath.Join(dir, "w.pdf")}, filepath.Join(dir, "w.pdf")},
+		{"to-image", []string{"pdf", "to-image", a, "--outdir", filepath.Join(dir, "imgs")}, filepath.Join(dir, "imgs")},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			dryArgs := append(append([]string{}, c.args...), "--dry-run", "-o", "json")
+			if code := runCaptured(t, dryArgs); code != 0 {
+				t.Fatalf("dry-run exit %d", code)
+			}
+			if _, err := os.Stat(c.want); err == nil {
+				t.Fatalf("dry-run wrote %s", c.want)
+			}
+			if code := runCaptured(t, append(c.args, "-o", "json")); code != 0 {
+				t.Fatalf("exit %d", code)
+			}
+			if _, err := os.Stat(c.want); err != nil {
+				t.Fatalf("missing output %s: %v", c.want, err)
+			}
+		})
+	}
+}
+
+// runFailure runs args and returns the exit code and the error envelope.
+func runFailure(t *testing.T, args []string) (int, map[string]any) {
+	t.Helper()
+	var buf bytes.Buffer
+	old := out.P
+	out.P = &out.Printer{Format: "json", Version: Version, Start: time.Now(), W: &buf}
+	defer func() { out.P = old }()
+	code := executeArgs(args)
+	var env map[string]any
+	if err := json.Unmarshal(buf.Bytes(), &env); err != nil {
+		t.Fatalf("%v: json: %v body=%s", args, err, buf.String())
+	}
+	return code, env
+}
+
+func closedPort(t *testing.T) string {
+	t.Helper()
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, port, _ := net.SplitHostPort(ln.Addr().String())
+	_ = ln.Close()
+	return port
+}
+
+func TestErrorEnvelope(t *testing.T) {
+	port := closedPort(t)
+	cases := []struct {
+		args []string
+		exit int
+		code string
+	}{
+		{[]string{"bogus"}, out.ExitUsage, "USAGE"},
+		{[]string{"pdf", "merge", "only-one.pdf"}, out.ExitUsage, "USAGE"},
+		{[]string{"image", "resize", "--nope"}, out.ExitUsage, "USAGE"},
+		{[]string{"tls", "check", "127.0.0.1", "--port", port, "--timeout", "2s"}, out.ExitNetwork, "TLS_CHECK"},
+		{[]string{"headers", "check", "http://127.0.0.1:" + port}, out.ExitNetwork, "HEADERS_CHECK"},
+		{[]string{"ct", "search", "example.com", "--api", "http://127.0.0.1:" + port + "/"}, out.ExitNetwork, "CT_SEARCH"},
+	}
+	for _, c := range cases {
+		code, env := runFailure(t, append(c.args, "-o", "json"))
+		if code != c.exit {
+			t.Errorf("%v: exit %d, want %d", c.args, code, c.exit)
+		}
+		e, _ := env["error"].(map[string]any)
+		if env["ok"] != false || e == nil || e["code"] != c.code || e["hint"] == "" {
+			t.Errorf("%v: envelope %v, want ok=false code=%s with hint", c.args, env, c.code)
+		}
+		if _, ok := env["meta"].(map[string]any); !ok {
+			t.Errorf("%v: no meta", c.args)
 		}
 	}
 }
