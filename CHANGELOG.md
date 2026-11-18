@@ -4,41 +4,39 @@ All notable changes to toolips are listed here.
 
 ## [Unreleased]
 
-### Fixed
+## [0.0.1] - 2026-11-18
 
-- A missing input file now fails with `NOT_FOUND` (exit 3) in `pdf` and `secret scan`.
-- A wrong number of arguments now fails with `USAGE` (exit 2) instead of exit 1.
-- An unknown verb (e.g. `toolips pdf nope`) now fails with `USAGE` (exit 2) instead of printing help with exit 0.
-- PDF errors show only the root cause, not pdfcpu's internal call chain.
-- PDF commands run pdfcpu offline, so they never fetch links, images or revocation lists.
-- Images that declare more than 100 megapixels are refused before decoding, so a small file cannot exhaust memory.
-- `secret scan` keeps findings before a line over 1 MiB, and lists every file it did not read in full under `skipped`.
-- File names in text output are escaped, so a crafted name cannot send terminal control codes.
-
-### Changed
-
-- README, `toolips --help` and `toolips guide` describe toolips as one local command line for PDFs, images, secret scans and TLS checks.
-- Write commands refuse to replace an existing output file (`EXISTS`) unless `--force` is given. A batch checks every output before writing any.
+The first release.
 
 ### Added
 
-- `image strip`: removes EXIF, GPS, XMP, IPTC and comments from JPG, and text, eXIf and time chunks from PNG, without re-encoding. A JPG keeps its orientation.
-- Image commands read WebP, BMP and TIFF. Output stays JPG, PNG or GIF; these inputs are written as PNG by default.
-- `pdf number`: page numbers with `--text` (`%p`, `%P`), `--position` and `--pages`.
-- `pdf pages`: `--keep` extracts and reorders pages, `--remove` deletes them.
-- `pdf protect` and `pdf unlock`: AES-256 password, read from `--password-file` (or stdin), never from a flag value.
-- `pdf info`: pages, first page size, metadata (dates in RFC 3339), encryption, form and signatures.
-- `completion` is listed in `toolips list`.
-- `toolips --help` and `toolips list` say which commands use the network (`tls`, `headers`, `ct`).
-- Agent skill `skills/toolips/SKILL.md`, with a test that every command it names exists.
-
-## [0.0.1] - 2026-11-17
-
-### Added
-
-- First release: PDF pack (`merge`, `split`, `compress`, `rotate`, `watermark`,
-  `to-image` embedded extract, `from-image`), image pack (`compress`, `resize`,
-  `convert`, `crop`, `rotate`, `watermark`, `grayscale`), security pack
-  (`tls check`, `headers check`, `secret scan`, `ct search`).
-- Stable JSON envelope (`-o text|json`), `--dry-run` on writes, install script
-  and GitHub Actions CI/release.
+- PDF: `merge`, `split`, `compress`, `rotate`, `watermark`, `from-image`,
+  `to-image` (extracts embedded images; it does not render pages), `info`,
+  `pages` (`--keep` extracts and reorders, `--remove` deletes), `number`
+  (page numbers with `%p` and `%P`), and `protect` / `unlock` (AES-256, the
+  password read from `--password-file` or stdin, never from a flag value).
+- Images: `compress`, `resize`, `convert`, `crop`, `rotate`, `watermark`,
+  `grayscale` and `strip`. They read JPG, PNG, GIF, WebP, BMP and TIFF, and
+  write JPG, PNG and GIF; WebP, BMP and TIFF input is written as PNG by
+  default. `strip` removes EXIF, GPS, XMP, IPTC and comments from JPG and
+  text, eXIf and time chunks from PNG without re-encoding, and keeps a JPG's
+  orientation. They take several files, a folder or a quoted glob.
+- Security: `tls check`, `headers check`, `secret scan` and `ct search`.
+  `secret scan` redacts what it finds and lists every file it did not read
+  in full under `skipped`.
+- One JSON envelope for agents and text for people (`-o text|json|auto`),
+  with exit codes 0 ok, 1 error, 2 usage, 3 not found, 4 network, and a
+  hint on every error.
+- `--dry-run` on every write. An existing output file stops the command
+  with `EXISTS` unless `--force` is given; a batch checks every output
+  before writing any.
+- Private by default: PDF, image and secret commands never use the network
+  (pdfcpu runs offline). Only `tls`, `headers` and `ct` connect, to the host
+  you name, and help and `toolips list` mark them.
+- Safe with untrusted files: images that declare more than 100 megapixels
+  are refused before decoding, and file names and remote text are escaped
+  before they reach the terminal.
+- `toolips guide`, `toolips list`, shell `completion`, and an agent skill in
+  `skills/toolips/SKILL.md`.
+- Install script with checksum check, and release archives for Linux, macOS
+  and Windows on amd64 and arm64.
