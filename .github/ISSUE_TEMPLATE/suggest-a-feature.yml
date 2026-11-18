@@ -1,0 +1,33 @@
+name: Suggest a feature
+description: A task you want toolips to do for you or your AI agent
+labels: [enhancement]
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: What do you want to do?
+      description: The task, not the solution. For example "compress a PDF without uploading it".
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: How do you do it today?
+      description: The tools or commands you use now (qpdf, ImageMagick, openssl, a website, ...)
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could toolips help?
+      description: Optional. A command you imagine, like `toolips pdf compress in.pdf --out out.pdf`.
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Does it fit toolips?
+      description: See [CONTRIBUTING.md](https://github.com/sgnd/toolips/blob/main/CONTRIBUTING.md#before-you-add-something).
+      options:
+        - label: It is everyday PDF, image or security-check work people run locally
+          required: true
+        - label: It can work as a plain command, for a person and for an AI agent (no windows)
+          required: true
