@@ -12,6 +12,7 @@ import (
 
 	"github.com/pdfcpu/pdfcpu/pkg/api"
 	"github.com/pdfcpu/pdfcpu/pkg/filter"
+	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu"
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/types"
 )
@@ -230,4 +231,32 @@ func NumberPages(ctx context.Context, inFile, outFile, text, pos string, pages [
 // bigger than toolips allows.
 func IsTooLarge(err error) bool {
 	return errors.Is(err, filter.ErrDecodeLimitExceeded) || errors.Is(err, model.ErrInputSizeLimit)
+}
+
+// NUpValues and BookletValues are the pages-per-sheet counts pdfcpu supports.
+var (
+	NUpValues     = pdfcpu.NUpValues
+	BookletValues = pdfcpu.NUpValuesForBooklets()
+)
+
+// NUp puts perSheet pages of inFile on each sheet of the given paper size
+// ("A4", "Letter") and writes outFile.
+func NUp(ctx context.Context, inFile, outFile string, perSheet int, paper string) error {
+	c := conf()
+	n, err := api.PDFNUpConfig(perSheet, "formsize:"+paper, c)
+	if err != nil {
+		return err
+	}
+	return api.NUpFile(ctx, []string{inFile}, outFile, nil, n, c)
+}
+
+// Booklet arranges inFile for printing and folding into a booklet, with
+// perSheet pages on each sheet, and writes outFile.
+func Booklet(ctx context.Context, inFile, outFile string, perSheet int, paper string) error {
+	c := conf()
+	n, err := api.PDFBookletConfig(perSheet, "formsize:"+paper, c)
+	if err != nil {
+		return err
+	}
+	return api.BookletFile(ctx, []string{inFile}, outFile, nil, n, c)
 }

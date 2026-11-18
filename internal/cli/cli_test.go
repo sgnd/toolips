@@ -662,3 +662,28 @@ func TestJWTDecode(t *testing.T) {
 		t.Errorf("missing file: exit %d", code)
 	}
 }
+
+func TestPDFNUpBooklet(t *testing.T) {
+	dir := t.TempDir()
+	img := filepath.Join(dir, "p.png")
+	writePNG(t, img, 50, 70)
+	src := filepath.Join(dir, "a.pdf")
+	if code := runCaptured(t, []string{"pdf", "from-image", img, img, img, img, "--out", src}); code != 0 {
+		t.Fatalf("from-image exit %d", code)
+	}
+	if code := runCaptured(t, []string{"pdf", "nup", src, "--per-sheet", "2", "--paper", "Letter", "-o", "json"}); code != 0 {
+		t.Errorf("nup exit %d", code)
+	}
+	if code := runCaptured(t, []string{"pdf", "booklet", src, "-o", "json"}); code != 0 {
+		t.Errorf("booklet exit %d", code)
+	}
+	for _, args := range [][]string{
+		{"pdf", "nup", src, "--per-sheet", "5"},
+		{"pdf", "booklet", src, "--per-sheet", "3"},
+		{"pdf", "nup", src, "--paper", "A3"},
+	} {
+		if code, _ := runFailure(t, append(args, "-o", "json")); code != out.ExitUsage {
+			t.Errorf("%v: exit %d, want usage", args, code)
+		}
+	}
+}

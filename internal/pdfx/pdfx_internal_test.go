@@ -218,3 +218,32 @@ func withinTime(t *testing.T, fn func()) {
 		t.Fatal("took longer than 5s")
 	}
 }
+
+func TestNUpAndBooklet(t *testing.T) {
+	dir := t.TempDir()
+	img := filepath.Join(dir, "p.png")
+	f, _ := os.Create(img)
+	_ = png.Encode(f, image.NewGray(image.Rect(0, 0, 50, 70)))
+	_ = f.Close()
+	ctx := context.Background()
+	src := filepath.Join(dir, "a.pdf")
+	if err := FromImage(ctx, []string{img, img, img, img}, src); err != nil {
+		t.Fatal(err)
+	}
+	for name, fn := range map[string]func(string) error{
+		"nup":     func(o string) error { return NUp(ctx, src, o, 4, "A4") },
+		"booklet": func(o string) error { return Booklet(ctx, src, o, 2, "A4") },
+	} {
+		o := filepath.Join(dir, name+".pdf")
+		if err := fn(o); err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+		info, err := ReadInfo(ctx, o)
+		if err != nil || info.Pages < 1 || info.Pages >= 4 {
+			t.Errorf("%s: %d pages, %v; want fewer sheets than the 4 pages", name, info.Pages, err)
+		}
+	}
+	if err := NUp(ctx, src, filepath.Join(dir, "x.pdf"), 5, "A4"); err == nil {
+		t.Error("5 per sheet accepted")
+	}
+}
