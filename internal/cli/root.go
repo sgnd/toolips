@@ -77,8 +77,12 @@ func isRelease(v string) bool {
 
 func newRoot() *cobra.Command {
 	root := &cobra.Command{
-		Use:           "toolips",
-		Short:         "All-in-one everyday tools for people and agents",
+		Use:   "toolips",
+		Short: "All-in-one everyday tools for people and agents",
+		Long: `All-in-one everyday tools for people and agents.
+
+Private: pdf, image and secret commands work on local files only and never
+use the network. Only tls, headers and ct connect to the host you name.`,
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {

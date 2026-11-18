@@ -14,12 +14,15 @@ import (
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/types"
 )
 
+// conf is the pdfcpu configuration for every command. Offline stops pdfcpu
+// from fetching links, images or revocation lists, so files stay local.
 func conf() *model.Configuration {
 	c, err := api.LoadConfiguration(api.ConfigurationOptions{Mode: api.ConfigurationModeStateless})
 	if err != nil {
 		// Stateless mode should not fail; fall back to a built-in config.
-		return model.NewDefaultConfiguration()
+		c = model.NewDefaultConfiguration()
 	}
+	c.Offline = true
 	return c
 }
 

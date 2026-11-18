@@ -11,10 +11,10 @@ import (
 var catalog = []catalogEntry{
 	{Noun: "pdf", Verbs: []string{"merge", "split", "compress", "rotate", "watermark", "to-image", "from-image"}, Desc: "Merge, split, compress and convert PDFs"},
 	{Noun: "image", Verbs: []string{"compress", "resize", "convert", "crop", "rotate", "watermark", "grayscale"}, Desc: "Compress, resize, convert and edit images"},
-	{Noun: "tls", Verbs: []string{"check"}, Desc: "Check a host's TLS certificate"},
-	{Noun: "headers", Verbs: []string{"check"}, Desc: "Grade HTTP security headers"},
+	{Noun: "tls", Verbs: []string{"check"}, Desc: "Check a host's TLS certificate (network)"},
+	{Noun: "headers", Verbs: []string{"check"}, Desc: "Grade HTTP security headers (network)"},
 	{Noun: "secret", Verbs: []string{"scan"}, Desc: "Scan files for keys and tokens"},
-	{Noun: "ct", Verbs: []string{"search"}, Desc: "Search certificate transparency logs"},
+	{Noun: "ct", Verbs: []string{"search"}, Desc: "Search certificate transparency logs (network)"},
 	{Noun: "version", Verbs: nil, Desc: "Print version"},
 	{Noun: "list", Verbs: nil, Desc: "List commands"},
 	{Noun: "guide", Verbs: nil, Desc: "Short how-to for people and agents"},

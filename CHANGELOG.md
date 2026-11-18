@@ -10,10 +10,12 @@ All notable changes to toolips are listed here.
 - A wrong number of arguments now fails with `USAGE` (exit 2) instead of exit 1.
 - An unknown verb (e.g. `toolips pdf nope`) now fails with `USAGE` (exit 2) instead of printing help with exit 0.
 - PDF errors show only the root cause, not pdfcpu's internal call chain.
+- PDF commands run pdfcpu offline, so they never fetch links, images or revocation lists.
 
 ### Added
 
 - `completion` is listed in `toolips list`.
+- `toolips --help` and `toolips list` say which commands use the network (`tls`, `headers`, `ct`).
 
 ## [0.1.0] — 2026-11-17
 
