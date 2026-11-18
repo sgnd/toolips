@@ -22,9 +22,11 @@ AI agents. The product goal and philosophy are in brainOS `AGENTS.md`
 | 1.6 | Clean PDF error messages (no repeated `open ...: open ...`) | done |
 | 1.7 | CI green on all six platforms; release dry run with `make dist` | open |
 | 1.8 | Private: files never leave the machine; only `tls`, `headers` and `ct` use the network, stated in `--help` and tested | done |
-| 1.9 | Secure: security review of the CLI (paths, archives, network inputs) with the `security-audit` skill | open |
+| 1.9 | Secure: security review of the CLI (paths, archives, network inputs) with the `security-audit` skill; record in `docs/security/2026-11-18-cli-review.md` | done |
 | 1.10 | For agents: agent skill file (`skills/toolips/SKILL.md`) like komando's | done |
 | 1.11 | Killer-feature gap list: compare with the top online tools and add the missing everyday verbs as plan items | open |
+| 1.12 | Refuse to replace an existing output file unless `--force` is given (from the security review) | open |
+| 1.13 | Fuzz PDF input for decompression bombs in a sandbox (from the security review) | open |
 
 ## Phase 2: paid plan
 

@@ -11,6 +11,9 @@ All notable changes to toolips are listed here.
 - An unknown verb (e.g. `toolips pdf nope`) now fails with `USAGE` (exit 2) instead of printing help with exit 0.
 - PDF errors show only the root cause, not pdfcpu's internal call chain.
 - PDF commands run pdfcpu offline, so they never fetch links, images or revocation lists.
+- Images that declare more than 100 megapixels are refused before decoding, so a small file cannot exhaust memory.
+- `secret scan` keeps findings before a line over 1 MiB, and lists every file it did not read in full under `skipped`.
+- File names in text output are escaped, so a crafted name cannot send terminal control codes.
 
 ### Added
 

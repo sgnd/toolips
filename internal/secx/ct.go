@@ -3,6 +3,7 @@ package secx
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sgnd/toolips/internal/out"
 	"io"
 	"net/http"
 	"net/url"
@@ -43,7 +44,7 @@ func (c CTResult) Text() string {
 	for i := 0; i < limit; i++ {
 		e := c.Entries[i]
 		fmt.Fprintf(&b, "  %s  %s → %s  %s\n",
-			safeText(e.CommonName), e.NotBefore, e.NotAfter, safeText(e.IssuerName))
+			out.SafeText(e.CommonName), e.NotBefore, e.NotAfter, out.SafeText(e.IssuerName))
 	}
 	if len(c.Entries) > limit {
 		fmt.Fprintf(&b, "  … and %d more\n", len(c.Entries)-limit)
@@ -115,12 +116,12 @@ func SearchCT(domain string, client *http.Client, baseURL string) CTResult {
 		seen[key] = true
 		names := splitNames(row.NameValue)
 		res.Entries = append(res.Entries, CTEntry{
-			IssuerName:   safeText(row.IssuerName),
-			CommonName:   safeText(row.CommonName),
-			NameValue:    safeText(row.NameValue),
+			IssuerName:   out.SafeText(row.IssuerName),
+			CommonName:   out.SafeText(row.CommonName),
+			NameValue:    out.SafeText(row.NameValue),
 			NotBefore:    row.NotBefore,
 			NotAfter:     row.NotAfter,
-			SerialNumber: safeText(row.SerialNumber),
+			SerialNumber: out.SafeText(row.SerialNumber),
 			DNSNames:     names,
 		})
 	}
@@ -132,12 +133,12 @@ func splitNames(s string) []string {
 	parts := strings.FieldsFunc(s, func(r rune) bool {
 		return r == '\n' || r == ','
 	})
-	var out []string
+	var names []string
 	for _, p := range parts {
 		p = strings.TrimSpace(p)
 		if p != "" {
-			out = append(out, safeText(p))
+			names = append(names, out.SafeText(p))
 		}
 	}
-	return out
+	return names
 }

@@ -224,7 +224,7 @@ func fileResultText(paths []string) string {
 	}
 	var b strings.Builder
 	for _, p := range paths {
-		fmt.Fprintf(&b, "%s\n", p)
+		fmt.Fprintf(&b, "%s\n", out.SafeText(p))
 	}
 	return b.String()
 }
