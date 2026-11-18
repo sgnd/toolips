@@ -2,12 +2,12 @@
 
 [![CI](https://github.com/sgnd/toolips/actions/workflows/ci.yml/badge.svg)](https://github.com/sgnd/toolips/actions/workflows/ci.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
-[![toolips.xyz](https://img.shields.io/badge/web-toolips.xyz-0a7ea4)](https://toolips.xyz)
+[![efolusi.com](https://img.shields.io/badge/web-efolusi.com-0a7ea4)](https://efolusi.com)
 
 **All-in-one everyday tools for people and AI agents.**
 
 Local, unlimited, AGPL. One static binary — no accounts, no feature gates.
-JSON for agents, text for humans. Web: [toolips.xyz](https://toolips.xyz).
+JSON for agents, text for humans. Web: [efolusi.com](https://efolusi.com).
 
 ## Install
 
