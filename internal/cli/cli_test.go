@@ -645,3 +645,20 @@ func TestHash(t *testing.T) {
 		t.Errorf("mismatch: exit %d, error %v", code, e)
 	}
 }
+
+func TestJWTDecode(t *testing.T) {
+	dir := t.TempDir()
+	tok := filepath.Join(dir, "tok.txt")
+	_ = os.WriteFile(tok, []byte("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0MiJ9.c2ln\n"), 0o600)
+	if code := runCaptured(t, []string{"jwt", "decode", tok, "-o", "json"}); code != 0 {
+		t.Errorf("exit %d", code)
+	}
+	bad := filepath.Join(dir, "bad.txt")
+	_ = os.WriteFile(bad, []byte("not-a-jwt\n"), 0o600)
+	if code, _ := runFailure(t, []string{"jwt", "decode", bad, "-o", "json"}); code != out.ExitError {
+		t.Errorf("bad token: exit %d", code)
+	}
+	if code, _ := runFailure(t, []string{"jwt", "decode", filepath.Join(dir, "none"), "-o", "json"}); code != out.ExitNotFound {
+		t.Errorf("missing file: exit %d", code)
+	}
+}

@@ -1,11 +1,8 @@
 package cli
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"io"
-	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -347,7 +344,7 @@ appear in the process list or shell history.`,
 			if g.dryRun {
 				return done(cmd, newFilesOut([]string{outPath}, "would write "+outPath))
 			}
-			pw, err := readPassword(cmd, pwFile)
+			pw, err := readSecretLine(cmd, pwFile, "password", "check --password-file", 4096)
 			if err != nil {
 				return err
 			}
@@ -362,26 +359,6 @@ appear in the process list or shell history.`,
 	return cmd
 }
 
-func readPassword(cmd *cobra.Command, path string) (string, error) {
-	var r io.Reader = cmd.InOrStdin()
-	if path != "-" {
-		f, err := os.Open(path)
-		if err != nil {
-			return "", out.Errf(out.ExitNotFound, "NOT_FOUND", "check --password-file", "%s: no such file", path)
-		}
-		defer f.Close()
-		r = f
-	}
-	line, err := bufio.NewReader(io.LimitReader(r, 4096)).ReadString('\n')
-	if err != nil && err != io.EOF {
-		return "", out.Errf(out.ExitError, "PASSWORD", "check --password-file", "read password: %v", err)
-	}
-	pw := strings.TrimRight(line, "\r\n")
-	if pw == "" {
-		return "", out.Usage("the password is empty")
-	}
-	return pw, nil
-}
 
 func pdfPages() *cobra.Command {
 	var keep, remove string

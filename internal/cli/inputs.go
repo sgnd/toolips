@@ -1,11 +1,17 @@
 package cli
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/spf13/cobra"
+
+	"github.com/sgnd/toolips/internal/out"
 )
 
 // expandInputs turns file arguments, quoted globs and folders into a sorted
@@ -75,3 +81,28 @@ func expandInputs(args []string, keep func(string) bool, kind string) ([]string,
 }
 
 func anyFile(string) bool { return true }
+
+// readSecretLine reads the first line of path, or of stdin when path is "-".
+// Secrets (passwords, tokens) come this way, never as an argument, so they
+// do not show in the process list or shell history. what names the secret
+// in errors; hint says where to look; limit caps the bytes read.
+func readSecretLine(cmd *cobra.Command, path, what, hint string, limit int64) (string, error) {
+	var r io.Reader = cmd.InOrStdin()
+	if path != "-" {
+		f, err := os.Open(path)
+		if err != nil {
+			return "", out.Errf(out.ExitNotFound, "NOT_FOUND", hint, "%s: no such file", path)
+		}
+		defer f.Close()
+		r = f
+	}
+	line, err := bufio.NewReader(io.LimitReader(r, limit)).ReadString('\n')
+	if err != nil && err != io.EOF {
+		return "", out.Errf(out.ExitError, "READ", hint, "read %s: %v", what, err)
+	}
+	v := strings.TrimRight(line, "\r\n")
+	if v == "" {
+		return "", out.Usage("the %s is empty", what)
+	}
+	return v, nil
+}
