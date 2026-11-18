@@ -11,6 +11,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"github.com/sgnd/toolips/internal/imgx"
+	"golang.org/x/image/bmp"
+	"golang.org/x/image/tiff"
 	"hash/crc32"
 	"strings"
 )
@@ -177,5 +179,41 @@ func TestOpenRejectsHugeDeclaredSize(t *testing.T) {
 	}
 	if _, _, err := imgx.Open(path); err == nil || !strings.Contains(err.Error(), "megapixel") {
 		t.Fatalf("got %v, want megapixel limit error", err)
+	}
+}
+
+func TestOpenReadsWebPBMPTIFF(t *testing.T) {
+	dir := t.TempDir()
+	src := image.NewRGBA(image.Rect(0, 0, 6, 4))
+	files := map[string]func(*os.File) error{
+		"a.bmp":  func(f *os.File) error { return bmp.Encode(f, src) },
+		"a.tiff": func(f *os.File) error { return tiff.Encode(f, src, nil) },
+	}
+	for name, enc := range files {
+		f, err := os.Create(filepath.Join(dir, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := enc(f); err != nil {
+			t.Fatal(err)
+		}
+		_ = f.Close()
+	}
+	cases := map[string]imgx.Format{
+		filepath.Join(dir, "a.bmp"):              "bmp",
+		filepath.Join(dir, "a.tiff"):             "tiff",
+		filepath.Join("testdata", "gopher.webp"): "webp",
+	}
+	for path, want := range cases {
+		img, format, err := imgx.Open(path)
+		if err != nil || format != want || img.Bounds().Empty() {
+			t.Errorf("Open(%s) = %v, %q, %v", path, img != nil, format, err)
+		}
+		if imgx.Writable(format) != imgx.FormatPNG {
+			t.Errorf("Writable(%q) = %q, want png", format, imgx.Writable(format))
+		}
+	}
+	if imgx.Writable(imgx.FormatJPEG) != imgx.FormatJPEG {
+		t.Error("Writable changed jpg")
 	}
 }

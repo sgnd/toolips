@@ -21,6 +21,7 @@ All notable changes to toolips are listed here.
 
 ### Added
 
+- Image commands read WebP, BMP and TIFF. Output stays JPG, PNG or GIF; these inputs are written as PNG by default.
 - `pdf number`: page numbers with `--text` (`%p`, `%P`), `--position` and `--pages`.
 - `pdf pages`: `--keep` extracts and reorders pages, `--remove` deletes them.
 - `pdf protect` and `pdf unlock`: AES-256 password, read from `--password-file` (or stdin), never from a flag value.

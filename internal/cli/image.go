@@ -211,7 +211,7 @@ func imageGrayscale() *cobra.Command {
 func runImageBatch(cmd *cobra.Command, args []string, suffix string, forceFmt imgx.Format, fn func(in, dest string) error) error {
 	expanded, err := expandImageInputs(args)
 	if err != nil {
-		return out.Errf(out.ExitNotFound, "IMAGE", "pass image files, a folder, or a glob (*.jpg|*.png|*.gif)", "%v", err)
+		return out.Errf(out.ExitNotFound, "IMAGE", "pass image files (jpg, png, gif, webp, bmp, tiff), a folder, or a glob", "%v", err)
 	}
 	outPath, outDir := writeFlag(cmd)
 	if len(expanded) > 1 && outPath != "" {
@@ -258,6 +258,7 @@ func resolveImageOut(in, outPath, outDir, suffix string, forceFmt imgx.Format) (
 			if err != nil {
 				return "", err
 			}
+			format = imgx.Writable(format)
 		}
 	}
 	name := filepath.Base(imgx.DefaultOut(filepath.Base(in), suffix, format))
@@ -267,7 +268,7 @@ func resolveImageOut(in, outPath, outDir, suffix string, forceFmt imgx.Format) (
 	return filepath.Join(filepath.Dir(in), name), nil
 }
 
-// expandImageInputs turns globs and directories into concrete JPG/PNG/GIF paths.
+// expandImageInputs turns globs and directories into concrete image paths.
 // Agents often pass literal "*.jpg"; shells may already expand, so plain files
 // are kept as-is.
 func expandImageInputs(args []string) ([]string, error) {
@@ -340,7 +341,7 @@ func expandImageInputs(args []string) ([]string, error) {
 
 func isImagePath(path string) bool {
 	switch strings.ToLower(filepath.Ext(path)) {
-	case ".jpg", ".jpeg", ".png", ".gif":
+	case ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tif", ".tiff":
 		return true
 	default:
 		return false
