@@ -1,5 +1,6 @@
 // Package imgx provides pure-Go image compress, resize, convert, crop,
-// rotate, watermark and grayscale for JPG, PNG and GIF.
+// rotate, watermark and grayscale. It reads JPG, PNG, GIF, WebP, BMP and
+// TIFF, and writes JPG, PNG and GIF.
 package imgx
 
 import (
@@ -15,10 +16,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	_ "golang.org/x/image/bmp"
 	xdraw "golang.org/x/image/draw"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/basicfont"
 	"golang.org/x/image/math/fixed"
+	_ "golang.org/x/image/tiff"
+	_ "golang.org/x/image/webp"
 )
 
 // Format is an output image format.
@@ -29,6 +33,17 @@ const (
 	FormatPNG  Format = "png"
 	FormatGIF  Format = "gif"
 )
+
+// Writable returns f when toolips can write it, else PNG. WebP, BMP and
+// TIFF input then gets a lossless output by default.
+func Writable(f Format) Format {
+	switch f {
+	case FormatJPEG, FormatPNG, FormatGIF:
+		return f
+	default:
+		return FormatPNG
+	}
+}
 
 // MaxPixels caps width x height before decoding (100 megapixels, about
 // 400 MB as RGBA). A small file can declare a huge size and exhaust memory.
@@ -81,7 +96,7 @@ func ParseFormat(s string) (Format, error) {
 	case "gif":
 		return FormatGIF, nil
 	case "webp":
-		return "", fmt.Errorf("webp is not supported in this pure-Go build")
+		return "", fmt.Errorf("webp can be read but not written; use jpg, png or gif")
 	default:
 		return "", fmt.Errorf("unsupported format %q (use jpg, png or gif)", s)
 	}

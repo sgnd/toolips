@@ -23,6 +23,11 @@ First five minutes:
   toolips image convert "*.png" --format jpg --outdir ./jpg
   toolips tls check example.com
 
+Image notes:
+  Reads JPG, PNG, GIF, WebP, BMP and TIFF. Writes JPG, PNG and GIF;
+  WebP, BMP and TIFF input is written as PNG unless --out or --format
+  names another format.
+
 PDF notes:
   pdf to-image extracts embedded images (pure Go). True page
   rasterization needs CGO and is not included.

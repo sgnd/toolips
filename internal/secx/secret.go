@@ -65,7 +65,7 @@ var secretRules = []rule{
 }
 
 var skipExt = map[string]bool{
-	".png": true, ".jpg": true, ".jpeg": true, ".gif": true, ".webp": true,
+	".png": true, ".jpg": true, ".jpeg": true, ".gif": true, ".webp": true, ".bmp": true, ".tif": true, ".tiff": true,
 	".pdf": true, ".zip": true, ".gz": true, ".tar": true, ".woff": true,
 	".woff2": true, ".ico": true, ".mp4": true, ".mp3": true,
 }

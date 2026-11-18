@@ -17,6 +17,7 @@ import (
 	"context"
 	"github.com/sgnd/toolips/internal/out"
 	"github.com/sgnd/toolips/internal/pdfx"
+	"golang.org/x/image/bmp"
 	"strconv"
 )
 
@@ -552,5 +553,34 @@ func TestPDFNumber(t *testing.T) {
 	}
 	if code, _ := runFailure(t, []string{"pdf", "number", src, "--position", "middle", "-o", "json"}); code != out.ExitUsage {
 		t.Errorf("bad position: exit %d", code)
+	}
+}
+
+func TestImageReadsWebPAndBMP(t *testing.T) {
+	dir := t.TempDir()
+	webp, err := os.ReadFile(filepath.Join("..", "imgx", "testdata", "gopher.webp"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "g.webp"), webp, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	f, err := os.Create(filepath.Join(dir, "b.bmp"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := bmp.Encode(f, image.NewRGBA(image.Rect(0, 0, 8, 8))); err != nil {
+		t.Fatal(err)
+	}
+	_ = f.Close()
+
+	outDir := filepath.Join(dir, "out")
+	if code := runCaptured(t, []string{"image", "grayscale", dir, "--outdir", outDir, "-o", "json"}); code != 0 {
+		t.Fatalf("exit %d", code)
+	}
+	for _, want := range []string{"b.gray.png", "g.gray.png"} {
+		if _, err := os.Stat(filepath.Join(outDir, want)); err != nil {
+			t.Errorf("missing %s: %v", want, err)
+		}
 	}
 }

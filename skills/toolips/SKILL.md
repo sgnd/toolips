@@ -1,6 +1,6 @@
 ---
 name: toolips
-description: Merge, split, compress, rotate and watermark PDFs and extract, reorder, delete or number pages, read their metadata, add or remove a password; resize, compress, convert, crop, rotate, watermark and grayscale images (JPG, PNG, GIF); check a host's TLS certificate, grade HTTP security headers, scan files for leaked keys and tokens, and search certificate transparency logs, all locally through the toolips CLI. Use whenever a task needs one of these, or when the user mentions toolips, a PDF, an image file, a certificate, security headers or leaked secrets.
+description: Merge, split, compress, rotate and watermark PDFs and extract, reorder, delete or number pages, read their metadata, add or remove a password; resize, compress, convert, crop, rotate, watermark and grayscale images (read JPG, PNG, GIF, WebP, BMP, TIFF; write JPG, PNG, GIF); check a host's TLS certificate, grade HTTP security headers, scan files for leaked keys and tokens, and search certificate transparency logs, all locally through the toolips CLI. Use whenever a task needs one of these, or when the user mentions toolips, a PDF, an image file, a certificate, security headers or leaked secrets.
 ---
 
 # toolips
@@ -34,9 +34,11 @@ line.
 3. **Pass many images at once.** Image commands take several files, a
    folder, or a quoted glob such as `"*.png"`; you do not need the shell to
    expand it.
-4. **Know the limits.** Image formats are JPG, PNG and GIF; WebP is not
-   supported. `toolips pdf to-image` extracts the images embedded in a PDF;
-   it does not render pages.
+4. **Know the limits.** Images are read as JPG, PNG, GIF, WebP, BMP or
+   TIFF and written as JPG, PNG or GIF. WebP, BMP and TIFF input is written
+   as PNG unless `--out` or `--format` names another format.
+   `toolips pdf to-image` extracts the images embedded in a PDF; it does not
+   render pages.
 5. **Know what uses the network.** Only `toolips tls check`,
    `toolips headers check` and `toolips ct search` connect to the host you
    name. Every other command works on local files only.
