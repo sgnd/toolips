@@ -584,3 +584,24 @@ func TestImageReadsWebPAndBMP(t *testing.T) {
 		}
 	}
 }
+
+func TestImageStrip(t *testing.T) {
+	dir := t.TempDir()
+	src := filepath.Join(dir, "a.png")
+	writePNG(t, src, 8, 8)
+	if code := runCaptured(t, []string{"image", "strip", src, "-o", "json"}); code != 0 {
+		t.Fatalf("exit %d", code)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "a.stripped.png")); err != nil {
+		t.Fatal(err)
+	}
+	webp, err := os.ReadFile(filepath.Join("..", "imgx", "testdata", "gopher.webp"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := filepath.Join(dir, "g.webp")
+	_ = os.WriteFile(w, webp, 0o644)
+	if code, _ := runFailure(t, []string{"image", "strip", w, "-o", "json"}); code != out.ExitError {
+		t.Errorf("webp: exit %d, want 1", code)
+	}
+}

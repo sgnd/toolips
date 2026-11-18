@@ -59,6 +59,7 @@ The agent skill is [skills/toolips/SKILL.md](skills/toolips/SKILL.md).
 | `pdf pages` | Extract, reorder or delete pages |
 | `pdf number` | Add page numbers |
 | `image compress / resize / convert / crop / rotate / watermark / grayscale` | Read JPG, PNG, GIF, WebP, BMP, TIFF; write JPG, PNG, GIF (multi-file, folder, or glob) |
+| `image strip` | Remove EXIF, GPS and other metadata from JPG and PNG, without re-encoding |
 | `tls check` | Expiry, chain, protocol |
 | `headers check` | Security header grade |
 | `secret scan` | Local regex for keys/tokens |

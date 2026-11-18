@@ -22,6 +22,7 @@ All notable changes to toolips are listed here.
 
 ### Added
 
+- `image strip`: removes EXIF, GPS, XMP, IPTC and comments from JPG, and text, eXIf and time chunks from PNG, without re-encoding. A JPG keeps its orientation.
 - Image commands read WebP, BMP and TIFF. Output stays JPG, PNG or GIF; these inputs are written as PNG by default.
 - `pdf number`: page numbers with `--text` (`%p`, `%P`), `--position` and `--pages`.
 - `pdf pages`: `--keep` extracts and reorders pages, `--remove` deletes them.

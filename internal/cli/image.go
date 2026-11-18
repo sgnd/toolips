@@ -18,7 +18,7 @@ func cmdImage() *cobra.Command {
 	img := &cobra.Command{Use: "image", Short: "Image tools"}
 	img.AddCommand(
 		imageCompress(), imageResize(), imageConvert(), imageCrop(),
-		imageRotate(), imageWatermark(), imageGrayscale(),
+		imageRotate(), imageWatermark(), imageGrayscale(), imageStrip(),
 	)
 	return img
 }
@@ -346,4 +346,25 @@ func isImagePath(path string) bool {
 	default:
 		return false
 	}
+}
+
+func imageStrip() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "strip FILE [FILE...]",
+		Short: "Remove EXIF, GPS and other metadata from JPG and PNG images",
+		Long: `Remove EXIF, GPS and other metadata from JPG and PNG images.
+
+The picture itself is copied byte for byte, so it loses no quality. A JPG
+keeps only its EXIF orientation, so a phone photo stays upright. Other
+formats are refused: convert them to JPG or PNG first.`,
+		Args: cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runImageBatch(cmd, args, ".stripped", "", func(in, dest string) error {
+				_, err := imgx.Strip(in, dest)
+				return err
+			})
+		},
+	}
+	addWriteFlags(cmd)
+	return cmd
 }

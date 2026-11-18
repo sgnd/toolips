@@ -41,7 +41,7 @@ yet. Every item must run locally in pure Go (no CGO). Priority: A first
 | 1.16 | `pdf info`: pages, size, metadata, encryption (pdfcpu `info`) | many PDF sites | A | done |
 | 1.17 | `pdf number`: add page numbers (pdfcpu `stamp`) | iLovePDF Page numbers | A | done |
 | 1.18 | Read WebP input (`golang.org/x/image/webp`, decode only) and BMP/TIFF input | iLoveIMG, Squoosh | A | done |
-| 1.19 | `image strip`: remove EXIF and GPS metadata | photo privacy sites | A | open |
+| 1.19 | `image strip`: remove EXIF and GPS metadata | photo privacy sites | A | done |
 | 1.20 | `dns check`: A, MX, SPF, DMARC, CAA records of a domain (network) | MXToolbox | B | open |
 | 1.21 | `hash`: SHA-256 and other checksums of files, verify against a sum | online hash sites | B | open |
 | 1.22 | `qr make`: QR code PNG from text or a URL | QR code generators | B | open |
