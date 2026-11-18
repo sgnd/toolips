@@ -113,3 +113,44 @@ func writePNG(t *testing.T, path string, w, h int) {
 		t.Fatal(err)
 	}
 }
+
+func TestParseAndExtFormat(t *testing.T) {
+	ok := map[string]imgx.Format{"jpg": imgx.FormatJPEG, ".JPEG": imgx.FormatJPEG, "png": imgx.FormatPNG, "gif": imgx.FormatGIF}
+	for in, want := range ok {
+		got, err := imgx.ParseFormat(in)
+		if err != nil || got != want {
+			t.Errorf("ParseFormat(%q) = %q, %v", in, got, err)
+		}
+	}
+	for _, in := range []string{"webp", "bmp", ""} {
+		if _, err := imgx.ParseFormat(in); err == nil {
+			t.Errorf("ParseFormat(%q) accepted", in)
+		}
+	}
+	if f, err := imgx.ExtFormat("/a/b.PNG"); err != nil || f != imgx.FormatPNG {
+		t.Errorf("ExtFormat = %q, %v", f, err)
+	}
+}
+
+func TestDefaultOut(t *testing.T) {
+	got := imgx.DefaultOut(filepath.Join("dir", "a.png"), "_small", imgx.FormatJPEG)
+	if want := filepath.Join("dir", "a_small.jpg"); got != want {
+		t.Errorf("got %s, want %s", got, want)
+	}
+}
+
+func TestRotateAndCropBounds(t *testing.T) {
+	img := image.NewRGBA(image.Rect(0, 0, 4, 2))
+	for deg, want := range map[int]image.Point{0: {4, 2}, 90: {2, 4}, 180: {4, 2}, 270: {2, 4}, -90: {2, 4}} {
+		r, err := imgx.Rotate(img, deg)
+		if err != nil || r.Bounds().Size() != want {
+			t.Errorf("Rotate %d = %v, %v; want %v", deg, r.Bounds().Size(), err, want)
+		}
+	}
+	if _, err := imgx.Rotate(img, 45); err == nil {
+		t.Error("Rotate 45 accepted")
+	}
+	if _, err := imgx.Crop(img, 2, 0, 4, 2); err == nil {
+		t.Error("crop outside bounds accepted")
+	}
+}
