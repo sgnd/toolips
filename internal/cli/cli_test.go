@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -308,6 +309,8 @@ func TestErrorEnvelope(t *testing.T) {
 		{[]string{"bogus"}, out.ExitUsage, "USAGE"},
 		{[]string{"pdf", "merge", "only-one.pdf"}, out.ExitUsage, "USAGE"},
 		{[]string{"image", "resize", "--nope"}, out.ExitUsage, "USAGE"},
+		{[]string{"pdf", "nope"}, out.ExitUsage, "USAGE"},
+		{[]string{"completion", "nosh"}, out.ExitUsage, "USAGE"},
 		{[]string{"tls", "check", "127.0.0.1", "--port", port, "--timeout", "2s"}, out.ExitNetwork, "TLS_CHECK"},
 		{[]string{"headers", "check", "http://127.0.0.1:" + port}, out.ExitNetwork, "HEADERS_CHECK"},
 		{[]string{"ct", "search", "example.com", "--api", "http://127.0.0.1:" + port + "/"}, out.ExitNetwork, "CT_SEARCH"},
@@ -324,5 +327,36 @@ func TestErrorEnvelope(t *testing.T) {
 		if _, ok := env["meta"].(map[string]any); !ok {
 			t.Errorf("%v: no meta", c.args)
 		}
+	}
+}
+
+func TestPDFErrorIsRootCause(t *testing.T) {
+	bad := filepath.Join(t.TempDir(), "bad.pdf")
+	if err := os.WriteFile(bad, []byte("not a pdf"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	code, env := runFailure(t, []string{"pdf", "compress", bad, "-o", "json"})
+	e, _ := env["error"].(map[string]any)
+	msg, _ := e["message"].(string)
+	if code != out.ExitError || e["code"] != "PDF_COMPRESS" || strings.Contains(msg, ": ") || msg == "" {
+		t.Errorf("exit %d, error %v", code, e)
+	}
+}
+
+func TestListMatchesCommands(t *testing.T) {
+	names := map[string]bool{}
+	for _, c := range newRoot().Commands() {
+		if !c.Hidden && c.Name() != "help" {
+			names[c.Name()] = true
+		}
+	}
+	for _, e := range catalog {
+		if !names[e.Noun] {
+			t.Errorf("list has %q but no such command", e.Noun)
+		}
+		delete(names, e.Noun)
+	}
+	for n := range names {
+		t.Errorf("command %q is missing from list", n)
 	}
 }

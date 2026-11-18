@@ -18,6 +18,7 @@ var catalog = []catalogEntry{
 	{Noun: "version", Verbs: nil, Desc: "Print version"},
 	{Noun: "list", Verbs: nil, Desc: "List commands"},
 	{Noun: "guide", Verbs: nil, Desc: "Short how-to for people and agents"},
+	{Noun: "completion", Verbs: []string{"bash", "zsh", "fish", "powershell"}, Desc: "Shell completion script"},
 }
 
 type catalogEntry struct {

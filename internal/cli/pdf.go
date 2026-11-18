@@ -38,7 +38,7 @@ func pdfMerge() *cobra.Command {
 				return done(cmd, newFilesOut([]string{outPath}, "would merge "+strconv.Itoa(len(args))+" files"))
 			}
 			if err := pdfx.Merge(context.Background(), args, outPath); err != nil {
-				return out.Errf(out.ExitError, "PDF_MERGE", "check the input PDFs", "%v", err)
+				return pdfErr("PDF_MERGE", "check the input PDFs", err)
 			}
 			return done(cmd, newFilesOut([]string{outPath}, ""))
 		},
@@ -65,7 +65,7 @@ func pdfSplit() *cobra.Command {
 				return done(cmd, newFilesOut([]string{outDir}, "would split into "+outDir))
 			}
 			if err := pdfx.Split(context.Background(), args[0], outDir, span); err != nil {
-				return out.Errf(out.ExitError, "PDF_SPLIT", "check the input PDF", "%v", err)
+				return pdfErr("PDF_SPLIT", "check the input PDF", err)
 			}
 			files, _ := pdfx.ListDirFiles(outDir)
 			return done(cmd, newFilesOut(files, ""))
@@ -93,7 +93,7 @@ func pdfCompress() *cobra.Command {
 				return done(cmd, newFilesOut([]string{outPath}, ""))
 			}
 			if err := pdfx.Compress(context.Background(), args[0], outPath); err != nil {
-				return out.Errf(out.ExitError, "PDF_COMPRESS", "check the input PDF", "%v", err)
+				return pdfErr("PDF_COMPRESS", "check the input PDF", err)
 			}
 			return done(cmd, newFilesOut([]string{outPath}, ""))
 		},
@@ -125,7 +125,7 @@ func pdfRotate() *cobra.Command {
 				return done(cmd, newFilesOut([]string{outPath}, ""))
 			}
 			if err := pdfx.Rotate(context.Background(), args[0], outPath, degrees, sel); err != nil {
-				return out.Errf(out.ExitError, "PDF_ROTATE", "use --degrees 90, 180 or 270", "%v", err)
+				return pdfErr("PDF_ROTATE", "use --degrees 90, 180 or 270", err)
 			}
 			return done(cmd, newFilesOut([]string{outPath}, ""))
 		},
@@ -161,7 +161,7 @@ func pdfWatermark() *cobra.Command {
 				return done(cmd, newFilesOut([]string{outPath}, ""))
 			}
 			if err := pdfx.Watermark(context.Background(), args[0], outPath, text, desc, sel); err != nil {
-				return out.Errf(out.ExitError, "PDF_WATERMARK", "check --text and the input PDF", "%v", err)
+				return pdfErr("PDF_WATERMARK", "check --text and the input PDF", err)
 			}
 			return done(cmd, newFilesOut([]string{outPath}, ""))
 		},
@@ -194,7 +194,7 @@ This does not rasterize pages. True page-to-image rendering needs CGO
 				return done(cmd, newFilesOut([]string{outDir}, "would extract embedded images"))
 			}
 			if err := pdfx.ToImage(context.Background(), args[0], outDir, nil); err != nil {
-				return out.Errf(out.ExitError, "PDF_TO_IMAGE", "check the input PDF", "%v", err)
+				return pdfErr("PDF_TO_IMAGE", "check the input PDF", err)
 			}
 			files, _ := pdfx.ListDirFiles(outDir)
 			return done(cmd, newFilesOut(files, "extracted embedded images only; not page rasterization"))
@@ -222,11 +222,22 @@ func pdfFromImage() *cobra.Command {
 				return done(cmd, newFilesOut([]string{outPath}, ""))
 			}
 			if err := pdfx.FromImage(context.Background(), args, outPath); err != nil {
-				return out.Errf(out.ExitError, "PDF_FROM_IMAGE", "check the input images", "%v", err)
+				return pdfErr("PDF_FROM_IMAGE", "check the input images", err)
 			}
 			return done(cmd, newFilesOut([]string{outPath}, ""))
 		},
 	}
 	addWriteFlags(cmd)
 	return cmd
+}
+
+// pdfErr keeps only the root cause of a pdfcpu error chain
+// ("optimize: prepare PDF context: read context: xref table: X" becomes "X")
+// so the message says what is wrong, not where pdfcpu was.
+func pdfErr(code, hint string, err error) error {
+	msg := err.Error()
+	if i := strings.LastIndex(msg, ": "); i >= 0 {
+		msg = msg[i+2:]
+	}
+	return out.Errf(out.ExitError, code, hint, "%s", msg)
 }

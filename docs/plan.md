@@ -18,8 +18,8 @@ AI agents. The product goal and philosophy are in brainOS `AGENTS.md`
 | 1.2 | CLI tests for every PDF verb (write and `--dry-run`) | done |
 | 1.3 | Error envelope tests: `USAGE` exit 2, network errors exit 4 | done |
 | 1.4 | Raise unit coverage of `out`, `imgx`, `secx` to 75% or more | done |
-| 1.5 | `completion` in `toolips list`, as the command standard says | open |
-| 1.6 | Clean PDF error messages (no repeated `open ...: open ...`) | open |
+| 1.5 | `completion` in `toolips list`, as the command standard says | done |
+| 1.6 | Clean PDF error messages (no repeated `open ...: open ...`) | done |
 | 1.7 | CI green on all six platforms; release dry run with `make dist` | open |
 | 1.8 | Private: files never leave the machine; only `tls`, `headers` and `ct` use the network, stated in `--help` and tested | open |
 | 1.9 | Secure: security review of the CLI (paths, archives, network inputs) with the `security-audit` skill | open |
