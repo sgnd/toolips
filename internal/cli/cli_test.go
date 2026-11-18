@@ -623,3 +623,25 @@ func TestPDFTooLarge(t *testing.T) {
 		t.Errorf("exit %d, error %v", code, e)
 	}
 }
+
+func TestHash(t *testing.T) {
+	dir := t.TempDir()
+	_ = os.WriteFile(filepath.Join(dir, "a.txt"), []byte("abc"), 0o644)
+	if code := runCaptured(t, []string{"hash", "sum", dir, "-o", "json"}); code != 0 {
+		t.Fatalf("sum exit %d", code)
+	}
+	if code, _ := runFailure(t, []string{"hash", "sum", dir, "--algo", "crc32", "-o", "json"}); code != out.ExitUsage {
+		t.Errorf("bad algo: exit %d", code)
+	}
+	sums := filepath.Join(dir, "sums.txt")
+	_ = os.WriteFile(sums, []byte("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad  a.txt\n"), 0o644)
+	if code := runCaptured(t, []string{"hash", "verify", sums, "-o", "json"}); code != 0 {
+		t.Errorf("verify exit %d", code)
+	}
+	_ = os.WriteFile(filepath.Join(dir, "a.txt"), []byte("abd"), 0o644)
+	code, env := runFailure(t, []string{"hash", "verify", sums, "-o", "json"})
+	e, _ := env["error"].(map[string]any)
+	if code != out.ExitError || e["code"] != "HASH_MISMATCH" {
+		t.Errorf("mismatch: exit %d, error %v", code, e)
+	}
+}

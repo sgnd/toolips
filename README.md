@@ -65,6 +65,7 @@ The agent skill is [skills/toolips/SKILL.md](skills/toolips/SKILL.md).
 | `secret scan` | Local regex for keys/tokens |
 | `ct search` | Certificate transparency (crt.sh) |
 | `dns check` | A, AAAA, MX, SPF and DMARC records, with mail problems flagged |
+| `hash sum / verify` | SHA-256 (or SHA-512, SHA-1, MD5) of files; check a `checksums.txt` |
 | `version` / `list` / `guide` / `completion` | About toolips, shell completion |
 
 Global flags: `-o text\|json\|auto`, `--pretty`, `--dry-run` (writes).

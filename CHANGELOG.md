@@ -7,6 +7,7 @@ All notable changes to toolips are listed here.
 ### Added
 
 - `dns check`: A, AAAA, MX, SPF and DMARC records of a domain, with missing MX, SPF or DMARC, several SPF records and DMARC `p=none` flagged. `--server` asks one DNS server instead of the system's.
+- `hash sum` and `hash verify`: SHA-256, SHA-512, SHA-1 or MD5 checksums of files, and a check of a sha256sum-style list such as a release's `checksums.txt` (`HASH_MISMATCH` when a file changed or is missing).
 
 ### Fixed
 

@@ -1,6 +1,6 @@
 ---
 name: toolips
-description: Merge, split, compress, rotate and watermark PDFs and extract, reorder, delete or number pages, read their metadata, add or remove a password; resize, compress, convert, crop, rotate, watermark and grayscale images, strip their EXIF and GPS data (read JPG, PNG, GIF, WebP, BMP, TIFF; write JPG, PNG, GIF); check a host's TLS certificate, grade HTTP security headers, scan files for leaked keys and tokens, search certificate transparency logs, and check a domain's DNS and mail records (A, AAAA, MX, SPF, DMARC), all locally through the toolips CLI. Use whenever a task needs one of these, or when the user mentions toolips, a PDF, an image file, a certificate, security headers, DNS, SPF, DMARC or leaked secrets.
+description: Merge, split, compress, rotate and watermark PDFs and extract, reorder, delete or number pages, read their metadata, add or remove a password; resize, compress, convert, crop, rotate, watermark and grayscale images, strip their EXIF and GPS data (read JPG, PNG, GIF, WebP, BMP, TIFF; write JPG, PNG, GIF); check a host's TLS certificate, grade HTTP security headers, scan files for leaked keys and tokens, search certificate transparency logs, check a domain's DNS and mail records (A, AAAA, MX, SPF, DMARC), and checksum files or verify them against a checksums.txt, all locally through the toolips CLI. Use whenever a task needs one of these, or when the user mentions toolips, a PDF, an image file, a certificate, security headers, DNS, SPF, DMARC, a checksum or leaked secrets.
 ---
 
 # toolips
@@ -69,6 +69,7 @@ toolips headers check https://example.com
 toolips secret scan . -o json
 toolips ct search example.com
 toolips dns check example.com
+toolips hash verify checksums.txt
 ```
 
 ## Reading the output

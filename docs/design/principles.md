@@ -19,7 +19,7 @@ There are no accounts, billing gates or feature flags in the CLI.
 toolips <noun> <verb> [files...] [flags]
 ```
 
-Nouns: `pdf`, `image`, `tls`, `headers`, `secret`, `ct`, `dns`, plus
+Nouns: `pdf`, `image`, `tls`, `headers`, `secret`, `ct`, `dns`, `hash`, plus
 `version`, `list`, `guide`.
 
 ## Output

@@ -114,7 +114,7 @@ use the network. Only tls, headers, ct and dns connect to the host you name.`,
 	root.PersistentFlags().BoolVar(&g.dryRun, "dry-run", false, "show what would change without writing")
 
 	root.AddCommand(cmdVersion(), cmdList(), cmdGuide())
-	root.AddCommand(cmdPDF(), cmdImage(), cmdTLS(), cmdHeaders(), cmdSecret(), cmdCT(), cmdDNS())
+	root.AddCommand(cmdPDF(), cmdImage(), cmdTLS(), cmdHeaders(), cmdSecret(), cmdCT(), cmdDNS(), cmdHash())
 	root.InitDefaultCompletionCmd()
 	markUsageErrors(root)
 	return root

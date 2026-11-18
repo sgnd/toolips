@@ -43,7 +43,7 @@ yet. Every item must run locally in pure Go (no CGO). Priority: A first
 | 1.18 | Read WebP input (`golang.org/x/image/webp`, decode only) and BMP/TIFF input | iLoveIMG, Squoosh | A | done |
 | 1.19 | `image strip`: remove EXIF and GPS metadata | photo privacy sites | A | done |
 | 1.20 | `dns check`: A, MX, SPF, DMARC, CAA records of a domain (network) | MXToolbox | B | done, without CAA: Go's resolver cannot ask for CAA; see 1.29 |
-| 1.21 | `hash`: SHA-256 and other checksums of files, verify against a sum | online hash sites | B | open |
+| 1.21 | `hash`: SHA-256 and other checksums of files, verify against a sum | online hash sites | B | done (`hash sum`, `hash verify`) |
 | 1.22 | `qr make`: QR code PNG from text or a URL | QR code generators | B | open |
 | 1.23 | `jwt decode`: show a token's header and claims, never send it | jwt.io | B | open |
 | 1.24 | `pdf nup` / `pdf booklet`: several pages per sheet (pdfcpu `nup`, `booklet`) | iLovePDF | C | open |
