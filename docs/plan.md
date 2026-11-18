@@ -20,13 +20,13 @@ AI agents. The product goal and philosophy are in brainOS `AGENTS.md`
 | 1.4 | Raise unit coverage of `out`, `imgx`, `secx` to 75% or more | done |
 | 1.5 | `completion` in `toolips list`, as the command standard says | done |
 | 1.6 | Clean PDF error messages (no repeated `open ...: open ...`) | done |
-| 1.7 | CI green on all six platforms; release dry run with `make dist` | open |
+| 1.7 | CI green on all six platforms; release dry run with `make dist` (checked 2026-11-18 at 74f21da: CI green on all six; archive names, `checksums.txt` and the archive layout match `install.sh` and `release.yml`) | done |
 | 1.8 | Private: files never leave the machine; only `tls`, `headers` and `ct` use the network, stated in `--help` and tested | done |
 | 1.9 | Secure: security review of the CLI (paths, archives, network inputs) with the `security-audit` skill; record in `docs/security/2026-11-18-cli-review.md` | done |
 | 1.10 | For agents: agent skill file (`skills/toolips/SKILL.md`) like komando's | done |
 | 1.11 | Killer-feature gap list: compare with the top online tools and add the missing everyday verbs as plan items (the gap list below) | done |
 | 1.12 | Refuse to replace an existing output file unless `--force` is given (from the security review) | done |
-| 1.13 | Fuzz PDF input for decompression bombs in a sandbox (from the security review) | open |
+| 1.13 | Fuzz PDF input for decompression bombs in a sandbox (from the security review) | open: not small. pdfcpu has no size cap, so a fix needs our own guard (stream size or decode budget) plus a fuzz run with memory and time limits. Not needed for 0.0.1: the risk is a local out-of-memory on a file the user chose |
 
 ## Phase 1b: killer-feature gaps
 
