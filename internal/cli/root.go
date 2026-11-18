@@ -78,7 +78,7 @@ func isRelease(v string) bool {
 func newRoot() *cobra.Command {
 	root := &cobra.Command{
 		Use:           "toolips",
-		Short:         "Everyday PDF, image and security tools for people and agents",
+		Short:         "All-in-one everyday tools for people and agents",
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
