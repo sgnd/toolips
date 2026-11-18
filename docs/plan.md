@@ -20,7 +20,7 @@ AI agents. The product goal and philosophy are in brainOS `AGENTS.md`
 | 1.4 | Raise unit coverage of `out`, `imgx`, `secx` to 75% or more | done |
 | 1.5 | `completion` in `toolips list`, as the command standard says | done |
 | 1.6 | Clean PDF error messages (no repeated `open ...: open ...`) | done |
-| 1.7 | CI green on all six platforms; release dry run with `make dist` | open |
+| 1.7 | CI green on all six platforms; release dry run with `make dist` (checked 2026-11-18 at 74f21da: CI green on all six; archive names, `checksums.txt` and the archive layout match `install.sh` and `release.yml`) | done |
 | 1.8 | Private: files never leave the machine; only `tls`, `headers` and `ct` use the network, stated in `--help` and tested | done |
 | 1.9 | Secure: security review of the CLI (paths, archives, network inputs) with the `security-audit` skill; record in `docs/security/2026-11-18-cli-review.md` | done |
 | 1.10 | For agents: agent skill file (`skills/toolips/SKILL.md`) like komando's | done |
