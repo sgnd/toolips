@@ -17,6 +17,7 @@ All notable changes to toolips are listed here.
 
 ### Changed
 
+- README, `toolips --help` and `toolips guide` describe toolips as one local command line for PDFs, images, secret scans and TLS checks.
 - Write commands refuse to replace an existing output file (`EXISTS`) unless `--force` is given. A batch checks every output before writing any.
 
 ### Added
@@ -30,7 +31,7 @@ All notable changes to toolips are listed here.
 - `toolips --help` and `toolips list` say which commands use the network (`tls`, `headers`, `ct`).
 - Agent skill `skills/toolips/SKILL.md`, with a test that every command it names exists.
 
-## [0.0.1] — 2026-11-17
+## [0.0.1] - 2026-11-17
 
 ### Added
 
