@@ -1,6 +1,6 @@
 ---
 name: toolips
-description: Merge, split, compress, rotate and watermark PDFs; resize, compress, convert, crop, rotate, watermark and grayscale images (JPG, PNG, GIF); check a host's TLS certificate, grade HTTP security headers, scan files for leaked keys and tokens, and search certificate transparency logs, all locally through the toolips CLI. Use whenever a task needs one of these, or when the user mentions toolips, a PDF, an image file, a certificate, security headers or leaked secrets.
+description: Merge, split, compress, rotate and watermark PDFs and read their pages and metadata; resize, compress, convert, crop, rotate, watermark and grayscale images (JPG, PNG, GIF); check a host's TLS certificate, grade HTTP security headers, scan files for leaked keys and tokens, and search certificate transparency logs, all locally through the toolips CLI. Use whenever a task needs one of these, or when the user mentions toolips, a PDF, an image file, a certificate, security headers or leaked secrets.
 ---
 
 # toolips
@@ -52,6 +52,7 @@ line.
 toolips pdf merge a.pdf b.pdf --out both.pdf --dry-run
 toolips pdf merge a.pdf b.pdf --out both.pdf
 toolips pdf split report.pdf --outdir pages
+toolips pdf info report.pdf
 toolips image resize "photos/*.jpg" --width 1200 --outdir small
 toolips image convert logo.png --format jpg --out logo.jpg
 toolips tls check example.com

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -16,7 +17,7 @@ func cmdPDF() *cobra.Command {
 	pdf := &cobra.Command{Use: "pdf", Short: "PDF tools"}
 	pdf.AddCommand(
 		pdfMerge(), pdfSplit(), pdfCompress(), pdfRotate(),
-		pdfWatermark(), pdfToImage(), pdfFromImage(),
+		pdfWatermark(), pdfToImage(), pdfFromImage(), pdfInfo(),
 	)
 	return pdf
 }
@@ -255,4 +256,44 @@ func pdfErr(code, hint string, err error) error {
 		msg = msg[i+2:]
 	}
 	return out.Errf(out.ExitError, code, hint, "%s", msg)
+}
+
+func pdfInfo() *cobra.Command {
+	return &cobra.Command{
+		Use:   "info FILE [FILE...]",
+		Short: "Show pages, page size, metadata and encryption of PDFs",
+		Args:  cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := requireFiles(args); err != nil {
+				return err
+			}
+			res := infoOut{Files: []pdfx.Info{}}
+			for _, f := range args {
+				info, err := pdfx.ReadInfo(context.Background(), f)
+				if err != nil {
+					return pdfErr("PDF_INFO", "check the input PDF", err)
+				}
+				res.Files = append(res.Files, info)
+			}
+			return done(cmd, res)
+		},
+	}
+}
+
+type infoOut struct {
+	Files []pdfx.Info `json:"files"`
+}
+
+func (r infoOut) Text() string {
+	var b strings.Builder
+	for _, i := range r.Files {
+		fmt.Fprintf(&b, "%s  PDF %s, %d pages, %s, %d bytes\n", out.SafeText(i.File), i.Version, i.Pages, i.PageSize, i.SizeBytes)
+		for _, kv := range [][2]string{{"title", i.Title}, {"author", i.Author}, {"creator", i.Creator}, {"producer", i.Producer}, {"created", i.Created}, {"modified", i.Modified}} {
+			if kv[1] != "" {
+				fmt.Fprintf(&b, "  %-9s %s\n", kv[0], out.SafeText(kv[1]))
+			}
+		}
+		fmt.Fprintf(&b, "  encrypted %t, form %t, signatures %t\n", i.Encrypted, i.Form, i.Signatures)
+	}
+	return b.String()
 }

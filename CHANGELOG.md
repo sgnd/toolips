@@ -21,6 +21,7 @@ All notable changes to toolips are listed here.
 
 ### Added
 
+- `pdf info`: pages, first page size, metadata (dates in RFC 3339), encryption, form and signatures.
 - `completion` is listed in `toolips list`.
 - `toolips --help` and `toolips list` say which commands use the network (`tls`, `headers`, `ct`).
 - Agent skill `skills/toolips/SKILL.md`, with a test that every command it names exists.

@@ -427,3 +427,36 @@ func TestRefuseOverwriteUnlessForce(t *testing.T) {
 		t.Errorf("batch wrote %d files before stopping, want none", len(ents)-1)
 	}
 }
+
+func TestPDFInfo(t *testing.T) {
+	dir := t.TempDir()
+	img := filepath.Join(dir, "p.png")
+	writePNG(t, img, 20, 10)
+	pdf := filepath.Join(dir, "a.pdf")
+	if code := runCaptured(t, []string{"pdf", "from-image", img, img, "--out", pdf}); code != 0 {
+		t.Fatalf("from-image exit %d", code)
+	}
+	var buf bytes.Buffer
+	old := out.P
+	out.P = &out.Printer{Format: "json", Version: Version, Start: time.Now(), W: &buf}
+	code := executeArgs([]string{"pdf", "info", pdf, "-o", "json"})
+	out.P = old
+	if code != 0 {
+		t.Fatalf("exit %d: %s", code, buf.String())
+	}
+	var env struct {
+		Data struct {
+			Files []struct {
+				Pages     int    `json:"pages"`
+				PageSize  string `json:"page_size"`
+				Encrypted bool   `json:"encrypted"`
+			} `json:"files"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(buf.Bytes(), &env); err != nil || len(env.Data.Files) != 1 {
+		t.Fatalf("decode: %v %s", err, buf.String())
+	}
+	if f := env.Data.Files[0]; f.Pages != 2 || f.PageSize == "" || f.Encrypted {
+		t.Errorf("info = %+v", f)
+	}
+}
