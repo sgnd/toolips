@@ -16,7 +16,7 @@ AI agents. The product goal and philosophy are in brainOS `AGENTS.md`
 |---|---|---|
 | 1.1 | Missing input file returns `NOT_FOUND` (exit 3) in every command | done |
 | 1.2 | CLI tests for every PDF verb (write and `--dry-run`) | done |
-| 1.3 | Error envelope tests: `USAGE` exit 2, network errors exit 4 | open |
+| 1.3 | Error envelope tests: `USAGE` exit 2, network errors exit 4 | done |
 | 1.4 | Raise unit coverage of `out`, `imgx`, `secx` to 75% or more | open |
 | 1.5 | `completion` in `toolips list`, as the command standard says | open |
 | 1.6 | Clean PDF error messages (no repeated `open ...: open ...`) | open |
