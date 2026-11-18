@@ -1,6 +1,6 @@
 ---
 name: toolips
-description: Merge, split, compress, rotate and watermark PDFs and extract, reorder, delete or number pages, read their metadata, add or remove a password; resize, compress, convert, crop, rotate, watermark and grayscale images (read JPG, PNG, GIF, WebP, BMP, TIFF; write JPG, PNG, GIF); check a host's TLS certificate, grade HTTP security headers, scan files for leaked keys and tokens, and search certificate transparency logs, all locally through the toolips CLI. Use whenever a task needs one of these, or when the user mentions toolips, a PDF, an image file, a certificate, security headers or leaked secrets.
+description: Merge, split, compress, rotate and watermark PDFs and extract, reorder, delete or number pages, read their metadata, add or remove a password; resize, compress, convert, crop, rotate, watermark and grayscale images, strip their EXIF and GPS data (read JPG, PNG, GIF, WebP, BMP, TIFF; write JPG, PNG, GIF); check a host's TLS certificate, grade HTTP security headers, scan files for leaked keys and tokens, and search certificate transparency logs, all locally through the toolips CLI. Use whenever a task needs one of these, or when the user mentions toolips, a PDF, an image file, a certificate, security headers or leaked secrets.
 ---
 
 # toolips
@@ -62,6 +62,7 @@ toolips pdf pages report.pdf --keep 3,1-2 --out reordered.pdf
 toolips pdf number report.pdf --text "%p of %P" --position br
 toolips image resize "photos/*.jpg" --width 1200 --outdir small
 toolips image convert logo.png --format jpg --out logo.jpg
+toolips image strip photo.jpg --out photo-clean.jpg
 toolips tls check example.com
 toolips headers check https://example.com
 toolips secret scan . -o json

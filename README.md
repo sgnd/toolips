@@ -4,10 +4,23 @@
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 [![efolusi.com](https://img.shields.io/badge/web-efolusi.com-0a7ea4)](https://efolusi.com)
 
-**All-in-one everyday tools for people and AI agents.**
+**One local command line for your PDFs, images, secret scans and TLS checks. For you and your AI agent.**
 
-Local, unlimited, AGPL. One static binary — no accounts, no feature gates.
-JSON for agents, text for humans. Web: [efolusi.com](https://efolusi.com).
+To merge two PDFs, shrink a photo or check a certificate, most people
+upload the file to a website. toolips does the same jobs on your own
+machine, with one command that you and an AI agent (Claude Code, Codex,
+Cursor, Gemini CLI, your own bot) can both use:
+
+- **Your files stay on your machine.** PDF, image and secret-scan commands
+  never use the network. Only `tls`, `headers` and `ct` connect, and only
+  to the host you name.
+- **Nothing is replaced by accident.** `--dry-run` shows what a command
+  would write, and an existing file is kept unless you add `--force`.
+- **Readable text for you, JSON for an agent**, with an exit code and a
+  hint on every error.
+- **One file to install**, with no account and no sign-up.
+
+Web: [efolusi.com](https://efolusi.com).
 
 ## Install
 
@@ -15,7 +28,7 @@ JSON for agents, text for humans. Web: [efolusi.com](https://efolusi.com).
 curl -fsSL https://raw.githubusercontent.com/sgnd/toolips/main/install.sh | sh
 ```
 
-Or build from source (Go 1.22+):
+Or build from source (the Go version in `go.mod`):
 
 ```sh
 make build   # → bin/toolips
@@ -46,6 +59,7 @@ The agent skill is [skills/toolips/SKILL.md](skills/toolips/SKILL.md).
 | `pdf pages` | Extract, reorder or delete pages |
 | `pdf number` | Add page numbers |
 | `image compress / resize / convert / crop / rotate / watermark / grayscale` | Read JPG, PNG, GIF, WebP, BMP, TIFF; write JPG, PNG, GIF (multi-file, folder, or glob) |
+| `image strip` | Remove EXIF, GPS and other metadata from JPG and PNG, without re-encoding |
 | `tls check` | Expiry, chain, protocol |
 | `headers check` | Security header grade |
 | `secret scan` | Local regex for keys/tokens |

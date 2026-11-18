@@ -1,7 +1,8 @@
 # Instructions for AI agents: using toolips
 
 Copy this file into your project (or into the agent's system prompt) so the
-agent uses the `toolips` all-in-one CLI for everyday local work.
+agent uses the `toolips` command line for PDF, image, secret-scan and TLS
+work on the local machine.
 
 toolips never asks an agent anything: give every argument and flag on the
 command line. Prefer `-o json` (or pipe stdout) and read `error.hint` on

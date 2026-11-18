@@ -6,7 +6,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const guideText = `toolips — all-in-one everyday tools for people and agents
+const guideText = `toolips: one local command line for your PDFs, images, secret scans
+and TLS checks. For you and your AI agent.
 
 Grammar: toolips <noun> <verb> [files...] [flags]
 

@@ -78,8 +78,9 @@ func isRelease(v string) bool {
 func newRoot() *cobra.Command {
 	root := &cobra.Command{
 		Use:   "toolips",
-		Short: "All-in-one everyday tools for people and agents",
-		Long: `All-in-one everyday tools for people and agents.
+		Short: "One local command line for PDFs, images, secret scans and TLS checks",
+		Long: `One local command line for your PDFs, images, secret scans and TLS
+checks. For you and your AI agent.
 
 Private: pdf, image and secret commands work on local files only and never
 use the network. Only tls, headers and ct connect to the host you name.`,
