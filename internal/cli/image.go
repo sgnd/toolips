@@ -1,10 +1,7 @@
 package cli
 
 import (
-	"fmt"
-	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -209,7 +206,7 @@ func imageGrayscale() *cobra.Command {
 }
 
 func runImageBatch(cmd *cobra.Command, args []string, suffix string, forceFmt imgx.Format, fn func(in, dest string) error) error {
-	expanded, err := expandImageInputs(args)
+	expanded, err := expandInputs(args, isImagePath, "images")
 	if err != nil {
 		return out.Errf(out.ExitNotFound, "IMAGE", "pass image files (jpg, png, gif, webp, bmp, tiff), a folder, or a glob", "%v", err)
 	}
@@ -266,77 +263,6 @@ func resolveImageOut(in, outPath, outDir, suffix string, forceFmt imgx.Format) (
 		return filepath.Join(outDir, name), nil
 	}
 	return filepath.Join(filepath.Dir(in), name), nil
-}
-
-// expandImageInputs turns globs and directories into concrete image paths.
-// Agents often pass literal "*.jpg"; shells may already expand, so plain files
-// are kept as-is.
-func expandImageInputs(args []string) ([]string, error) {
-	seen := make(map[string]struct{})
-	var out []string
-	add := func(paths ...string) {
-		for _, p := range paths {
-			if p == "" {
-				continue
-			}
-			if _, ok := seen[p]; ok {
-				continue
-			}
-			seen[p] = struct{}{}
-			out = append(out, p)
-		}
-	}
-	for _, arg := range args {
-		if strings.ContainsAny(arg, "*?[") {
-			matches, err := filepath.Glob(arg)
-			if err != nil {
-				return nil, err
-			}
-			var images []string
-			for _, m := range matches {
-				if isImagePath(m) {
-					images = append(images, m)
-				}
-			}
-			if len(images) == 0 {
-				return nil, fmt.Errorf("no images matched %q", arg)
-			}
-			sort.Strings(images)
-			add(images...)
-			continue
-		}
-		st, err := os.Stat(arg)
-		if err != nil {
-			return nil, err
-		}
-		if st.IsDir() {
-			entries, err := os.ReadDir(arg)
-			if err != nil {
-				return nil, err
-			}
-			var images []string
-			for _, e := range entries {
-				if e.IsDir() {
-					continue
-				}
-				p := filepath.Join(arg, e.Name())
-				if isImagePath(p) {
-					images = append(images, p)
-				}
-			}
-			if len(images) == 0 {
-				return nil, fmt.Errorf("no images in folder %q", arg)
-			}
-			sort.Strings(images)
-			add(images...)
-			continue
-		}
-		add(arg)
-	}
-	if len(out) == 0 {
-		return nil, os.ErrNotExist
-	}
-	return out, nil
 }
 
 func isImagePath(path string) bool {

@@ -623,3 +623,67 @@ func TestPDFTooLarge(t *testing.T) {
 		t.Errorf("exit %d, error %v", code, e)
 	}
 }
+
+func TestHash(t *testing.T) {
+	dir := t.TempDir()
+	_ = os.WriteFile(filepath.Join(dir, "a.txt"), []byte("abc"), 0o644)
+	if code := runCaptured(t, []string{"hash", "sum", dir, "-o", "json"}); code != 0 {
+		t.Fatalf("sum exit %d", code)
+	}
+	if code, _ := runFailure(t, []string{"hash", "sum", dir, "--algo", "crc32", "-o", "json"}); code != out.ExitUsage {
+		t.Errorf("bad algo: exit %d", code)
+	}
+	sums := filepath.Join(dir, "sums.txt")
+	_ = os.WriteFile(sums, []byte("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad  a.txt\n"), 0o644)
+	if code := runCaptured(t, []string{"hash", "verify", sums, "-o", "json"}); code != 0 {
+		t.Errorf("verify exit %d", code)
+	}
+	_ = os.WriteFile(filepath.Join(dir, "a.txt"), []byte("abd"), 0o644)
+	code, env := runFailure(t, []string{"hash", "verify", sums, "-o", "json"})
+	e, _ := env["error"].(map[string]any)
+	if code != out.ExitError || e["code"] != "HASH_MISMATCH" {
+		t.Errorf("mismatch: exit %d, error %v", code, e)
+	}
+}
+
+func TestJWTDecode(t *testing.T) {
+	dir := t.TempDir()
+	tok := filepath.Join(dir, "tok.txt")
+	_ = os.WriteFile(tok, []byte("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0MiJ9.c2ln\n"), 0o600)
+	if code := runCaptured(t, []string{"jwt", "decode", tok, "-o", "json"}); code != 0 {
+		t.Errorf("exit %d", code)
+	}
+	bad := filepath.Join(dir, "bad.txt")
+	_ = os.WriteFile(bad, []byte("not-a-jwt\n"), 0o600)
+	if code, _ := runFailure(t, []string{"jwt", "decode", bad, "-o", "json"}); code != out.ExitError {
+		t.Errorf("bad token: exit %d", code)
+	}
+	if code, _ := runFailure(t, []string{"jwt", "decode", filepath.Join(dir, "none"), "-o", "json"}); code != out.ExitNotFound {
+		t.Errorf("missing file: exit %d", code)
+	}
+}
+
+func TestPDFNUpBooklet(t *testing.T) {
+	dir := t.TempDir()
+	img := filepath.Join(dir, "p.png")
+	writePNG(t, img, 50, 70)
+	src := filepath.Join(dir, "a.pdf")
+	if code := runCaptured(t, []string{"pdf", "from-image", img, img, img, img, "--out", src}); code != 0 {
+		t.Fatalf("from-image exit %d", code)
+	}
+	if code := runCaptured(t, []string{"pdf", "nup", src, "--per-sheet", "2", "--paper", "Letter", "-o", "json"}); code != 0 {
+		t.Errorf("nup exit %d", code)
+	}
+	if code := runCaptured(t, []string{"pdf", "booklet", src, "-o", "json"}); code != 0 {
+		t.Errorf("booklet exit %d", code)
+	}
+	for _, args := range [][]string{
+		{"pdf", "nup", src, "--per-sheet", "5"},
+		{"pdf", "booklet", src, "--per-sheet", "3"},
+		{"pdf", "nup", src, "--paper", "A3"},
+	} {
+		if code, _ := runFailure(t, append(args, "-o", "json")); code != out.ExitUsage {
+			t.Errorf("%v: exit %d, want usage", args, code)
+		}
+	}
+}

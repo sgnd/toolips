@@ -1,11 +1,8 @@
 package cli
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"io"
-	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -23,6 +20,7 @@ func cmdPDF() *cobra.Command {
 		pdfMerge(), pdfSplit(), pdfCompress(), pdfRotate(),
 		pdfWatermark(), pdfToImage(), pdfFromImage(), pdfInfo(),
 		pdfProtect(), pdfUnlock(), pdfPages(), pdfNumber(),
+		pdfNUp(), pdfBooklet(),
 	)
 	return pdf
 }
@@ -347,7 +345,7 @@ appear in the process list or shell history.`,
 			if g.dryRun {
 				return done(cmd, newFilesOut([]string{outPath}, "would write "+outPath))
 			}
-			pw, err := readPassword(cmd, pwFile)
+			pw, err := readSecretLine(cmd, pwFile, "password", "check --password-file", 4096)
 			if err != nil {
 				return err
 			}
@@ -360,27 +358,6 @@ appear in the process list or shell history.`,
 	cmd.Flags().StringVar(&pwFile, "password-file", "", "file holding the password, or - for stdin")
 	addWriteFlags(cmd)
 	return cmd
-}
-
-func readPassword(cmd *cobra.Command, path string) (string, error) {
-	var r io.Reader = cmd.InOrStdin()
-	if path != "-" {
-		f, err := os.Open(path)
-		if err != nil {
-			return "", out.Errf(out.ExitNotFound, "NOT_FOUND", "check --password-file", "%s: no such file", path)
-		}
-		defer f.Close()
-		r = f
-	}
-	line, err := bufio.NewReader(io.LimitReader(r, 4096)).ReadString('\n')
-	if err != nil && err != io.EOF {
-		return "", out.Errf(out.ExitError, "PASSWORD", "check --password-file", "read password: %v", err)
-	}
-	pw := strings.TrimRight(line, "\r\n")
-	if pw == "" {
-		return "", out.Usage("the password is empty")
-	}
-	return pw, nil
 }
 
 func pdfPages() *cobra.Command {
@@ -469,6 +446,58 @@ In --text, %p is the page number and %P the page count: "%p of %P" prints
 	cmd.Flags().StringVar(&text, "text", "%p", "number text; %p page, %P page count")
 	cmd.Flags().StringVar(&pos, "position", "bc", "bl, bc, br, tl, tc or tr")
 	cmd.Flags().StringVar(&pages, "pages", "", "pages to number (empty = all)")
+	addWriteFlags(cmd)
+	return cmd
+}
+
+func pdfNUp() *cobra.Command {
+	return pdfSheetCmd("nup", "Put several pages on each sheet", ".nup", "PDF_NUP", pdfx.NUpValues, 4, pdfx.NUp)
+}
+
+func pdfBooklet() *cobra.Command {
+	return pdfSheetCmd("booklet", "Arrange pages for printing and folding into a booklet", ".booklet", "PDF_BOOKLET", pdfx.BookletValues, 2, pdfx.Booklet)
+}
+
+// pdfSheetCmd builds nup and booklet: both place several pages on a sheet.
+func pdfSheetCmd(verb, short, suffix, code string, allowed []int, def int, fn func(context.Context, string, string, int, string) error) *cobra.Command {
+	var perSheet int
+	var paper string
+	counts := make([]string, len(allowed))
+	for i, v := range allowed {
+		counts[i] = strconv.Itoa(v)
+	}
+	cmd := &cobra.Command{
+		Use:   verb + " FILE",
+		Short: short,
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := requireFiles(args); err != nil {
+				return err
+			}
+			if !slices.Contains(allowed, perSheet) {
+				return out.Usage("--per-sheet must be one of %s", strings.Join(counts, ", "))
+			}
+			if paper != "A4" && paper != "Letter" {
+				return out.Usage("--paper must be A4 or Letter")
+			}
+			outPath, _ := writeFlag(cmd)
+			if outPath == "" {
+				outPath = pdfx.DefaultOut(args[0], suffix, ".pdf")
+			}
+			if err := refuseOverwrite(cmd, outPath); err != nil {
+				return err
+			}
+			if g.dryRun {
+				return done(cmd, newFilesOut([]string{outPath}, "would write "+outPath))
+			}
+			if err := fn(context.Background(), args[0], outPath, perSheet, paper); err != nil {
+				return pdfErr(code, "check the input PDF", err)
+			}
+			return done(cmd, newFilesOut([]string{outPath}, ""))
+		},
+	}
+	cmd.Flags().IntVar(&perSheet, "per-sheet", def, "pages on each sheet: "+strings.Join(counts, ", "))
+	cmd.Flags().StringVar(&paper, "paper", "A4", "sheet size: A4 or Letter")
 	addWriteFlags(cmd)
 	return cmd
 }

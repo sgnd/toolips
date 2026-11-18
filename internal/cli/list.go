@@ -9,13 +9,15 @@ import (
 
 // catalog is the stable command table for `toolips list` and help.
 var catalog = []catalogEntry{
-	{Noun: "pdf", Verbs: []string{"merge", "split", "compress", "rotate", "watermark", "to-image", "from-image", "info", "protect", "unlock", "pages", "number"}, Desc: "Merge, split, compress and convert PDFs"},
+	{Noun: "pdf", Verbs: []string{"merge", "split", "compress", "rotate", "watermark", "to-image", "from-image", "info", "protect", "unlock", "pages", "number", "nup", "booklet"}, Desc: "Merge, split, compress and convert PDFs"},
 	{Noun: "image", Verbs: []string{"compress", "resize", "convert", "crop", "rotate", "watermark", "grayscale", "strip"}, Desc: "Compress, resize, convert and edit images"},
 	{Noun: "tls", Verbs: []string{"check"}, Desc: "Check a host's TLS certificate (network)"},
 	{Noun: "headers", Verbs: []string{"check"}, Desc: "Grade HTTP security headers (network)"},
 	{Noun: "secret", Verbs: []string{"scan"}, Desc: "Scan files for keys and tokens"},
 	{Noun: "ct", Verbs: []string{"search"}, Desc: "Search certificate transparency logs (network)"},
 	{Noun: "dns", Verbs: []string{"check"}, Desc: "Check a domain's DNS and mail records (network)"},
+	{Noun: "hash", Verbs: []string{"sum", "verify"}, Desc: "Checksum files and check them against a list"},
+	{Noun: "jwt", Verbs: []string{"decode"}, Desc: "Decode a JSON Web Token locally"},
 	{Noun: "version", Verbs: nil, Desc: "Print version"},
 	{Noun: "list", Verbs: nil, Desc: "List commands"},
 	{Noun: "guide", Verbs: nil, Desc: "Short how-to for people and agents"},

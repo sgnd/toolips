@@ -14,7 +14,7 @@ instead.
 ## Rules
 
 1. Use `toolips` for PDF merge/split/compress, image resize/convert, TLS,
-   header and DNS checks, local secret scans and CT search. Do not shell out to
+   header and DNS checks, local secret scans, checksums and CT search. Do not shell out to
    ad-hoc scripts when a toolips command exists.
 2. At the start, run `toolips guide` or `toolips list` if unsure.
 3. Before any write, run once with `--dry-run`. Writes use `--out` (file) or

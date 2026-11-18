@@ -58,6 +58,7 @@ The agent skill is [skills/toolips/SKILL.md](skills/toolips/SKILL.md).
 | `pdf protect / unlock` | Add or remove a password (AES-256) |
 | `pdf pages` | Extract, reorder or delete pages |
 | `pdf number` | Add page numbers |
+| `pdf nup / booklet` | Several pages per sheet, or a booklet to print and fold |
 | `image compress / resize / convert / crop / rotate / watermark / grayscale` | Read JPG, PNG, GIF, WebP, BMP, TIFF; write JPG, PNG, GIF (multi-file, folder, or glob) |
 | `image strip` | Remove EXIF, GPS and other metadata from JPG and PNG, without re-encoding |
 | `tls check` | Expiry, chain, protocol |
@@ -65,6 +66,8 @@ The agent skill is [skills/toolips/SKILL.md](skills/toolips/SKILL.md).
 | `secret scan` | Local regex for keys/tokens |
 | `ct search` | Certificate transparency (crt.sh) |
 | `dns check` | A, AAAA, MX, SPF and DMARC records, with mail problems flagged |
+| `hash sum / verify` | SHA-256 (or SHA-512, SHA-1, MD5) of files; check a `checksums.txt` |
+| `jwt decode` | A token's header and claims, with readable times; the token is read from a file or stdin |
 | `version` / `list` / `guide` / `completion` | About toolips, shell completion |
 
 Global flags: `-o text\|json\|auto`, `--pretty`, `--dry-run` (writes).

@@ -3,6 +3,7 @@ package secx
 import (
 	"context"
 	"crypto/tls"
+	"encoding/base64"
 	"errors"
 	"net"
 	"os"
@@ -186,5 +187,30 @@ func TestCheckDNSNullMX(t *testing.T) {
 	res := CheckDNS("example.com", r, time.Second)
 	if len(res.Problems) != 0 || !strings.Contains(res.Text(), "null MX") {
 		t.Errorf("null MX: problems %v, text %q", res.Problems, res.Text())
+	}
+}
+
+func jwtPart(v string) string { return base64.RawURLEncoding.EncodeToString([]byte(v)) }
+
+func TestDecodeJWT(t *testing.T) {
+	tok := jwtPart(`{"alg":"HS256","typ":"JWT"}`) + "." + jwtPart(`{"sub":"42","exp":1700000000,"iat":1690000000}`) + ".c2ln"
+	now := time.Unix(1800000000, 0)
+	j, err := DecodeJWT("Bearer "+tok+"\n", now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if j.Header["alg"] != "HS256" || j.Claims["sub"] != "42" || !j.Expired || !j.Signed || j.Verified {
+		t.Errorf("decoded = %+v", j)
+	}
+	if j.Times["exp"] != "2023-11-14T22:13:20Z" {
+		t.Errorf("exp = %s", j.Times["exp"])
+	}
+	if !strings.Contains(j.Text(), "signature not checked") {
+		t.Error("text does not say the signature is not checked")
+	}
+	for _, bad := range []string{"", "a.b", "!!.e30.x", jwtPart("[1]") + ".e30.x"} {
+		if _, err := DecodeJWT(bad, now); err == nil {
+			t.Errorf("accepted %q", bad)
+		}
 	}
 }
