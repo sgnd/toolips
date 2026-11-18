@@ -17,7 +17,7 @@ All notable changes to toolips are listed here.
 - `completion` is listed in `toolips list`.
 - `toolips --help` and `toolips list` say which commands use the network (`tls`, `headers`, `ct`).
 
-## [0.1.0] — 2026-11-17
+## [0.0.1] — 2026-11-17
 
 ### Added
 
