@@ -36,7 +36,7 @@ yet. Every item must run locally in pure Go (no CGO). Priority: A first
 
 | # | Item | Online tool it replaces | Priority | Status |
 |---|---|---|---|---|
-| 1.14 | `pdf protect` / `pdf unlock` (password, pdfcpu `crypto`) | iLovePDF Protect, Unlock | A | open |
+| 1.14 | `pdf protect` / `pdf unlock` (password, pdfcpu `crypto`) | iLovePDF Protect, Unlock | A | done |
 | 1.15 | `pdf pages`: extract, delete and reorder pages (pdfcpu `collect`, `trim`) | iLovePDF Organize, Remove pages | A | open |
 | 1.16 | `pdf info`: pages, size, metadata, encryption (pdfcpu `info`) | many PDF sites | A | done |
 | 1.17 | `pdf number`: add page numbers (pdfcpu `stamp`) | iLovePDF Page numbers | A | open |

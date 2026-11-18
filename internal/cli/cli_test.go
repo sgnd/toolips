@@ -460,3 +460,31 @@ func TestPDFInfo(t *testing.T) {
 		t.Errorf("info = %+v", f)
 	}
 }
+
+func TestPDFProtectUnlock(t *testing.T) {
+	dir := t.TempDir()
+	img := filepath.Join(dir, "p.png")
+	writePNG(t, img, 8, 8)
+	pdf := filepath.Join(dir, "a.pdf")
+	if code := runCaptured(t, []string{"pdf", "from-image", img, "--out", pdf}); code != 0 {
+		t.Fatalf("from-image exit %d", code)
+	}
+	pw := filepath.Join(dir, "pw.txt")
+	bad := filepath.Join(dir, "bad.txt")
+	_ = os.WriteFile(pw, []byte("open sesame\n"), 0o600)
+	_ = os.WriteFile(bad, []byte("wrong\n"), 0o600)
+	locked := filepath.Join(dir, "locked.pdf")
+
+	if code, _ := runFailure(t, []string{"pdf", "protect", pdf, "--out", locked, "-o", "json"}); code != out.ExitUsage {
+		t.Errorf("no --password-file: exit %d", code)
+	}
+	if code := runCaptured(t, []string{"pdf", "protect", pdf, "--password-file", pw, "--out", locked, "-o", "json"}); code != 0 {
+		t.Fatalf("protect exit %d", code)
+	}
+	if code, _ := runFailure(t, []string{"pdf", "unlock", locked, "--password-file", bad, "--out", filepath.Join(dir, "x.pdf"), "-o", "json"}); code != out.ExitError {
+		t.Errorf("wrong password: exit %d", code)
+	}
+	if code := runCaptured(t, []string{"pdf", "unlock", locked, "--password-file", pw, "--out", filepath.Join(dir, "open.pdf"), "-o", "json"}); code != 0 {
+		t.Errorf("unlock exit %d", code)
+	}
+}

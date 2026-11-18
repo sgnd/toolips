@@ -42,6 +42,7 @@ The agent skill is [skills/toolips/SKILL.md](skills/toolips/SKILL.md).
 | `pdf to-image` | Extract **embedded** images (not page rasterization) |
 | `pdf from-image` | Build a PDF from images |
 | `pdf info` | Pages, page size, metadata, encryption |
+| `pdf protect / unlock` | Add or remove a password (AES-256) |
 | `image compress / resize / convert / crop / rotate / watermark / grayscale` | JPG, PNG, GIF (multi-file, folder, or glob) |
 | `tls check` | Expiry, chain, protocol |
 | `headers check` | Security header grade |
