@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const guideText = `toolips — PDF, image and security tools
+const guideText = `toolips — all-in-one everyday tools for people and agents
 
 Grammar: toolips <noun> <verb> [files...] [flags]
 
