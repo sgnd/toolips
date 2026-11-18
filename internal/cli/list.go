@@ -9,7 +9,7 @@ import (
 
 // catalog is the stable command table for `toolips list` and help.
 var catalog = []catalogEntry{
-	{Noun: "pdf", Verbs: []string{"merge", "split", "compress", "rotate", "watermark", "to-image", "from-image", "info", "protect", "unlock"}, Desc: "Merge, split, compress and convert PDFs"},
+	{Noun: "pdf", Verbs: []string{"merge", "split", "compress", "rotate", "watermark", "to-image", "from-image", "info", "protect", "unlock", "pages"}, Desc: "Merge, split, compress and convert PDFs"},
 	{Noun: "image", Verbs: []string{"compress", "resize", "convert", "crop", "rotate", "watermark", "grayscale"}, Desc: "Compress, resize, convert and edit images"},
 	{Noun: "tls", Verbs: []string{"check"}, Desc: "Check a host's TLS certificate (network)"},
 	{Noun: "headers", Verbs: []string{"check"}, Desc: "Grade HTTP security headers (network)"},

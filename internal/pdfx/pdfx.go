@@ -151,3 +151,29 @@ func DefaultOut(inPath, suffix, ext string) string {
 	}
 	return filepath.Join(dir, base+suffix+ext)
 }
+
+// KeepPages writes the selected pages of inFile, in the order given, to
+// outFile ("3,1-2" puts page 3 first).
+func KeepPages(ctx context.Context, inFile, outFile, sel string) error {
+	pages, err := pageList(sel)
+	if err != nil {
+		return err
+	}
+	return api.CollectFile(ctx, inFile, outFile, pages, conf())
+}
+
+// RemovePages writes inFile without the selected pages to outFile.
+func RemovePages(ctx context.Context, inFile, outFile, sel string) error {
+	pages, err := pageList(sel)
+	if err != nil {
+		return err
+	}
+	return api.RemovePagesFile(ctx, inFile, outFile, pages, conf())
+}
+
+func pageList(sel string) ([]string, error) {
+	if strings.TrimSpace(sel) == "" {
+		return nil, fmt.Errorf("page selection is empty")
+	}
+	return api.ParsePageSelection(sel)
+}

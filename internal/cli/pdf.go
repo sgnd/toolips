@@ -21,7 +21,7 @@ func cmdPDF() *cobra.Command {
 	pdf.AddCommand(
 		pdfMerge(), pdfSplit(), pdfCompress(), pdfRotate(),
 		pdfWatermark(), pdfToImage(), pdfFromImage(), pdfInfo(),
-		pdfProtect(), pdfUnlock(),
+		pdfProtect(), pdfUnlock(), pdfPages(),
 	)
 	return pdf
 }
@@ -375,4 +375,50 @@ func readPassword(cmd *cobra.Command, path string) (string, error) {
 		return "", out.Usage("the password is empty")
 	}
 	return pw, nil
+}
+
+func pdfPages() *cobra.Command {
+	var keep, remove string
+	cmd := &cobra.Command{
+		Use:   "pages FILE (--keep PAGES | --remove PAGES)",
+		Short: "Extract, reorder or delete pages of a PDF",
+		Long: `Extract, reorder or delete pages of a PDF.
+
+--keep writes only the listed pages, in the order given ("3,1-2" puts page 3
+first). --remove writes every page except the listed ones. Pages use the
+pdfcpu syntax: "1-3,5", "even", "odd", "l" for the last page.`,
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := requireFiles(args); err != nil {
+				return err
+			}
+			if (keep == "") == (remove == "") {
+				return out.Usage("give exactly one of --keep or --remove")
+			}
+			outPath, _ := writeFlag(cmd)
+			if outPath == "" {
+				outPath = pdfx.DefaultOut(args[0], ".pages", ".pdf")
+			}
+			if err := refuseOverwrite(cmd, outPath); err != nil {
+				return err
+			}
+			if g.dryRun {
+				return done(cmd, newFilesOut([]string{outPath}, "would write "+outPath))
+			}
+			var err error
+			if keep != "" {
+				err = pdfx.KeepPages(context.Background(), args[0], outPath, keep)
+			} else {
+				err = pdfx.RemovePages(context.Background(), args[0], outPath, remove)
+			}
+			if err != nil {
+				return pdfErr("PDF_PAGES", "check the page list and the input PDF", err)
+			}
+			return done(cmd, newFilesOut([]string{outPath}, ""))
+		},
+	}
+	cmd.Flags().StringVar(&keep, "keep", "", "pages to keep, in this order")
+	cmd.Flags().StringVar(&remove, "remove", "", "pages to delete")
+	addWriteFlags(cmd)
+	return cmd
 }
