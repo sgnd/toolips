@@ -2,7 +2,9 @@ package secx
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"github.com/sgnd/toolips/internal/out"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -22,16 +24,29 @@ type ScanResult struct {
 	Findings []Finding `json:"findings"`
 	Scanned  int       `json:"scanned"`
 	Count    int       `json:"count"`
+	// Skipped lists files not scanned in full, so "no findings" is never
+	// read as "no secrets" for them.
+	Skipped []Skipped `json:"skipped,omitempty"`
+}
+
+// Skipped is a file the scan did not read in full, and why.
+type Skipped struct {
+	File   string `json:"file"`
+	Reason string `json:"reason"`
 }
 
 func (s ScanResult) Text() string {
-	if s.Count == 0 {
-		return fmt.Sprintf("scanned %d files, no secrets found\n", s.Scanned)
-	}
 	var b strings.Builder
-	fmt.Fprintf(&b, "scanned %d files, %d findings\n", s.Scanned, s.Count)
+	if s.Count == 0 {
+		fmt.Fprintf(&b, "scanned %d files, no secrets found\n", s.Scanned)
+	} else {
+		fmt.Fprintf(&b, "scanned %d files, %d findings\n", s.Scanned, s.Count)
+	}
+	for _, f := range s.Skipped {
+		fmt.Fprintf(&b, "%s  not fully scanned: %s\n", out.SafeText(f.File), f.Reason)
+	}
 	for _, f := range s.Findings {
-		fmt.Fprintf(&b, "%s:%d  %s  %s\n", f.File, f.Line, f.Rule, f.Snippet)
+		fmt.Fprintf(&b, "%s:%d  %s  %s\n", out.SafeText(f.File), f.Line, f.Rule, f.Snippet)
 	}
 	return b.String()
 }
@@ -71,6 +86,7 @@ func ScanPaths(paths []string) (ScanResult, error) {
 				return nil
 			}
 			if info.Size() > 2<<20 {
+				res.Skipped = append(res.Skipped, Skipped{File: path, Reason: "larger than 2 MiB"})
 				return nil
 			}
 			if skipExt[strings.ToLower(filepath.Ext(path))] {
@@ -78,10 +94,13 @@ func ScanPaths(paths []string) (ScanResult, error) {
 			}
 			res.Scanned++
 			findings, err := scanFile(path)
-			if err != nil {
-				return nil // unreadable files are skipped
-			}
 			res.Findings = append(res.Findings, findings...)
+			switch {
+			case errors.Is(err, bufio.ErrTooLong):
+				res.Skipped = append(res.Skipped, Skipped{File: path, Reason: "a line is longer than 1 MiB; read up to it"})
+			case err != nil:
+				res.Skipped = append(res.Skipped, Skipped{File: path, Reason: "unreadable"})
+			}
 			return nil
 		})
 		if err != nil {
@@ -98,7 +117,7 @@ func scanFile(path string) ([]Finding, error) {
 		return nil, err
 	}
 	defer f.Close()
-	var out []Finding
+	var found []Finding
 	sc := bufio.NewScanner(f)
 	sc.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 	line := 0
@@ -107,7 +126,7 @@ func scanFile(path string) ([]Finding, error) {
 		text := sc.Text()
 		for _, r := range secretRules {
 			if loc := r.re.FindStringIndex(text); loc != nil {
-				out = append(out, Finding{
+				found = append(found, Finding{
 					File:    path,
 					Line:    line,
 					Rule:    r.name,
@@ -116,7 +135,7 @@ func scanFile(path string) ([]Finding, error) {
 			}
 		}
 	}
-	return out, sc.Err()
+	return found, sc.Err()
 }
 
 // redactSnippet keeps nearby context but replaces the matched secret so
@@ -140,5 +159,5 @@ func redactSnippet(line string, start, end int) string {
 	if len(right) > maxCtx {
 		right = right[:maxCtx] + "…"
 	}
-	return safeText(strings.TrimSpace(left + "[redacted]" + right))
+	return out.SafeText(strings.TrimSpace(left + "[redacted]" + right))
 }

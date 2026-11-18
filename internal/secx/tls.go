@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"github.com/sgnd/toolips/internal/out"
 	"net"
 	"strings"
 	"time"
@@ -30,10 +31,10 @@ type TLSResult struct {
 
 func (r TLSResult) Text() string {
 	if !r.OK {
-		return fmt.Sprintf("%s:%s  FAIL  %s\n", r.Host, r.Port, safeText(r.Error))
+		return fmt.Sprintf("%s:%s  FAIL  %s\n", r.Host, r.Port, out.SafeText(r.Error))
 	}
 	return fmt.Sprintf("%s:%s  OK  %s  expires %s (%d days)  %s\n",
-		r.Host, r.Port, r.Protocol, r.NotAfter, r.DaysLeft, safeText(r.Subject))
+		r.Host, r.Port, r.Protocol, r.NotAfter, r.DaysLeft, out.SafeText(r.Subject))
 }
 
 // CheckTLS dials host:port and inspects the certificate.

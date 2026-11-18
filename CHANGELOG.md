@@ -11,11 +11,21 @@ All notable changes to toolips are listed here.
 - An unknown verb (e.g. `toolips pdf nope`) now fails with `USAGE` (exit 2) instead of printing help with exit 0.
 - PDF errors show only the root cause, not pdfcpu's internal call chain.
 - PDF commands run pdfcpu offline, so they never fetch links, images or revocation lists.
+- Images that declare more than 100 megapixels are refused before decoding, so a small file cannot exhaust memory.
+- `secret scan` keeps findings before a line over 1 MiB, and lists every file it did not read in full under `skipped`.
+- File names in text output are escaped, so a crafted name cannot send terminal control codes.
+
+### Changed
+
+- Write commands refuse to replace an existing output file (`EXISTS`) unless `--force` is given. A batch checks every output before writing any.
 
 ### Added
 
+- `pdf protect` and `pdf unlock`: AES-256 password, read from `--password-file` (or stdin), never from a flag value.
+- `pdf info`: pages, first page size, metadata (dates in RFC 3339), encryption, form and signatures.
 - `completion` is listed in `toolips list`.
 - `toolips --help` and `toolips list` say which commands use the network (`tls`, `headers`, `ct`).
+- Agent skill `skills/toolips/SKILL.md`, with a test that every command it names exists.
 
 ## [0.0.1] — 2026-11-17
 

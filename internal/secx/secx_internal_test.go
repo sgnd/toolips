@@ -3,6 +3,8 @@ package secx
 import (
 	"crypto/tls"
 	"net"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -51,5 +53,42 @@ func TestCheckTLSClosedPort(t *testing.T) {
 	_ = ln.Close()
 	if res := CheckTLS("127.0.0.1", port, time.Second); res.OK || res.Error == "" {
 		t.Errorf("closed port: %+v", res)
+	}
+}
+
+func TestScanReportsWhatItSkips(t *testing.T) {
+	dir := t.TempDir()
+	key := "AKIA" + strings.Repeat("A", 16)
+	long := key + "\n" + strings.Repeat("x", 2<<20-100) + "\n" + key + "\n"
+	big := strings.Repeat("y", 3<<20)
+	files := map[string]string{"long.js": long, "big.txt": big}
+	for name, body := range files {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	res, err := ScanPaths([]string{dir})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Count != 1 {
+		t.Errorf("want the finding before the long line kept, got %d findings", res.Count)
+	}
+	reasons := map[string]string{}
+	for _, s := range res.Skipped {
+		reasons[filepath.Base(s.File)] = s.Reason
+	}
+	if !strings.Contains(reasons["long.js"], "1 MiB") || !strings.Contains(reasons["big.txt"], "2 MiB") {
+		t.Errorf("skipped = %+v", res.Skipped)
+	}
+	if !strings.Contains(res.Text(), "not fully scanned") {
+		t.Errorf("text hides skipped files: %q", res.Text())
+	}
+}
+
+func TestScanTextEscapesFileNames(t *testing.T) {
+	res := ScanResult{Count: 1, Findings: []Finding{{File: "a\x1b[2Jb\rc", Line: 1, Rule: "r", Snippet: "s"}}}
+	if txt := res.Text(); strings.ContainsAny(txt, "\x1b\r") {
+		t.Errorf("control characters reached the terminal: %q", txt)
 	}
 }

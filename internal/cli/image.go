@@ -217,20 +217,26 @@ func runImageBatch(cmd *cobra.Command, args []string, suffix string, forceFmt im
 	if len(expanded) > 1 && outPath != "" {
 		return out.Usage("--out is for a single file; use --outdir for batch")
 	}
-	var written []string
-	for _, in := range expanded {
+	// Resolve and check every destination first, so a batch never stops
+	// half written.
+	dests := make([]string, len(expanded))
+	for i, in := range expanded {
 		dest, err := resolveImageOut(in, outPath, outDir, suffix, forceFmt)
 		if err != nil {
 			return out.Errf(out.ExitError, "IMAGE", "check the input image", "%s: %v", in, err)
 		}
-		if g.dryRun {
-			written = append(written, dest)
-			continue
+		if err := refuseOverwrite(cmd, dest); err != nil {
+			return err
 		}
-		if err := fn(in, dest); err != nil {
-			return out.Errf(out.ExitError, "IMAGE", "check the input image and flags", "%s: %v", in, err)
+		dests[i] = dest
+	}
+	written := dests
+	if !g.dryRun {
+		for i, in := range expanded {
+			if err := fn(in, dests[i]); err != nil {
+				return out.Errf(out.ExitError, "IMAGE", "check the input image and flags", "%s: %v", in, err)
+			}
 		}
-		written = append(written, dest)
 	}
 	note := ""
 	if g.dryRun {

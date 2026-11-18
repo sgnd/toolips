@@ -102,3 +102,20 @@ func TestFailTextAndDefaults(t *testing.T) {
 		t.Error("Reset kept DryRun")
 	}
 }
+
+func TestSafeText(t *testing.T) {
+	cases := map[string]string{
+		"plain":       "plain",
+		"tab\tnl\n":   "tab\tnl\n",
+		"cr\rover":    `cr\x0dover`,
+		"esc\x1b[31m": `esc\x1b[31m`,
+		"c1\u009bx":   `c1\x9bx`,
+		"del\x7f":     `del\x7f`,
+		"unicode é 漢": "unicode é 漢",
+	}
+	for in, want := range cases {
+		if got := SafeText(in); got != want {
+			t.Errorf("SafeText(%q) = %q, want %q", in, got, want)
+		}
+	}
+}

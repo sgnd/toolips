@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -358,5 +359,132 @@ func TestListMatchesCommands(t *testing.T) {
 	}
 	for n := range names {
 		t.Errorf("command %q is missing from list", n)
+	}
+}
+
+// TestSkillCommandsExist keeps skills/toolips/SKILL.md honest: every
+// `toolips NOUN VERB` it names must be a real command.
+func TestSkillCommandsExist(t *testing.T) {
+	body, err := os.ReadFile(filepath.Join("..", "..", "skills", "toolips", "SKILL.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	re := regexp.MustCompile("toolips ([a-z-]+)(?: ([a-z-]+))?")
+	root := newRoot()
+	found := 0
+	for _, m := range re.FindAllStringSubmatch(string(body), -1) {
+		if m[1] == "is" || m[1] == "never" || m[1] == "version" && m[2] == "" {
+			continue
+		}
+		args := []string{m[1]}
+		if m[2] != "" {
+			args = append(args, m[2])
+		}
+		cmd, rest, err := root.Find(args)
+		if err != nil || cmd == root || (m[2] != "" && len(rest) > 0 && cmd.HasSubCommands()) {
+			t.Errorf("SKILL.md names %q, which is not a command", m[0])
+		}
+		found++
+	}
+	if found < 10 {
+		t.Fatalf("only %d commands found in SKILL.md; is the pattern still right?", found)
+	}
+}
+
+func TestRefuseOverwriteUnlessForce(t *testing.T) {
+	dir := t.TempDir()
+	img := filepath.Join(dir, "p.png")
+	writePNG(t, img, 8, 8)
+	pdf := filepath.Join(dir, "out.pdf")
+	if code := runCaptured(t, []string{"pdf", "from-image", img, "--out", pdf}); code != 0 {
+		t.Fatalf("first write exit %d", code)
+	}
+	for _, extra := range [][]string{nil, {"--dry-run"}} {
+		args := append([]string{"pdf", "from-image", img, "--out", pdf, "-o", "json"}, extra...)
+		code, env := runFailure(t, args)
+		e, _ := env["error"].(map[string]any)
+		if code != out.ExitError || e["code"] != "EXISTS" {
+			t.Errorf("%v: exit %d, error %v", extra, code, e)
+		}
+	}
+	if code := runCaptured(t, []string{"pdf", "from-image", img, "--out", pdf, "--force"}); code != 0 {
+		t.Fatalf("--force exit %d", code)
+	}
+
+	// A batch with one existing output writes nothing at all.
+	outDir := filepath.Join(dir, "gray")
+	writePNG(t, filepath.Join(dir, "q.png"), 8, 8)
+	if err := os.MkdirAll(outDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	taken := filepath.Join(outDir, "q.gray.png")
+	writePNG(t, taken, 2, 2)
+	code, _ := runFailure(t, []string{"image", "grayscale", img, filepath.Join(dir, "q.png"), "--outdir", outDir, "-o", "json"})
+	if code != out.ExitError {
+		t.Fatalf("batch exit %d", code)
+	}
+	if ents, _ := os.ReadDir(outDir); len(ents) != 1 {
+		t.Errorf("batch wrote %d files before stopping, want none", len(ents)-1)
+	}
+}
+
+func TestPDFInfo(t *testing.T) {
+	dir := t.TempDir()
+	img := filepath.Join(dir, "p.png")
+	writePNG(t, img, 20, 10)
+	pdf := filepath.Join(dir, "a.pdf")
+	if code := runCaptured(t, []string{"pdf", "from-image", img, img, "--out", pdf}); code != 0 {
+		t.Fatalf("from-image exit %d", code)
+	}
+	var buf bytes.Buffer
+	old := out.P
+	out.P = &out.Printer{Format: "json", Version: Version, Start: time.Now(), W: &buf}
+	code := executeArgs([]string{"pdf", "info", pdf, "-o", "json"})
+	out.P = old
+	if code != 0 {
+		t.Fatalf("exit %d: %s", code, buf.String())
+	}
+	var env struct {
+		Data struct {
+			Files []struct {
+				Pages     int    `json:"pages"`
+				PageSize  string `json:"page_size"`
+				Encrypted bool   `json:"encrypted"`
+			} `json:"files"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(buf.Bytes(), &env); err != nil || len(env.Data.Files) != 1 {
+		t.Fatalf("decode: %v %s", err, buf.String())
+	}
+	if f := env.Data.Files[0]; f.Pages != 2 || f.PageSize == "" || f.Encrypted {
+		t.Errorf("info = %+v", f)
+	}
+}
+
+func TestPDFProtectUnlock(t *testing.T) {
+	dir := t.TempDir()
+	img := filepath.Join(dir, "p.png")
+	writePNG(t, img, 8, 8)
+	pdf := filepath.Join(dir, "a.pdf")
+	if code := runCaptured(t, []string{"pdf", "from-image", img, "--out", pdf}); code != 0 {
+		t.Fatalf("from-image exit %d", code)
+	}
+	pw := filepath.Join(dir, "pw.txt")
+	bad := filepath.Join(dir, "bad.txt")
+	_ = os.WriteFile(pw, []byte("open sesame\n"), 0o600)
+	_ = os.WriteFile(bad, []byte("wrong\n"), 0o600)
+	locked := filepath.Join(dir, "locked.pdf")
+
+	if code, _ := runFailure(t, []string{"pdf", "protect", pdf, "--out", locked, "-o", "json"}); code != out.ExitUsage {
+		t.Errorf("no --password-file: exit %d", code)
+	}
+	if code := runCaptured(t, []string{"pdf", "protect", pdf, "--password-file", pw, "--out", locked, "-o", "json"}); code != 0 {
+		t.Fatalf("protect exit %d", code)
+	}
+	if code, _ := runFailure(t, []string{"pdf", "unlock", locked, "--password-file", bad, "--out", filepath.Join(dir, "x.pdf"), "-o", "json"}); code != out.ExitError {
+		t.Errorf("wrong password: exit %d", code)
+	}
+	if code := runCaptured(t, []string{"pdf", "unlock", locked, "--password-file", pw, "--out", filepath.Join(dir, "open.pdf"), "-o", "json"}); code != 0 {
+		t.Errorf("unlock exit %d", code)
 	}
 }

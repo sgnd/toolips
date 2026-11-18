@@ -7,6 +7,9 @@ toolips never asks an agent anything: give every argument and flag on the
 command line. Prefer `-o json` (or pipe stdout) and read `error.hint` on
 failure.
 
+Agents that load skills can use [skills/toolips/SKILL.md](skills/toolips/SKILL.md)
+instead.
+
 ## Rules
 
 1. Use `toolips` for PDF merge/split/compress, image resize/convert, TLS and

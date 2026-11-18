@@ -1,7 +1,11 @@
 package cli
 
 import (
+	"bufio"
 	"context"
+	"fmt"
+	"io"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -16,7 +20,8 @@ func cmdPDF() *cobra.Command {
 	pdf := &cobra.Command{Use: "pdf", Short: "PDF tools"}
 	pdf.AddCommand(
 		pdfMerge(), pdfSplit(), pdfCompress(), pdfRotate(),
-		pdfWatermark(), pdfToImage(), pdfFromImage(),
+		pdfWatermark(), pdfToImage(), pdfFromImage(), pdfInfo(),
+		pdfProtect(), pdfUnlock(),
 	)
 	return pdf
 }
@@ -33,6 +38,9 @@ func pdfMerge() *cobra.Command {
 			outPath, _ := writeFlag(cmd)
 			if outPath == "" {
 				outPath = "merged.pdf"
+			}
+			if err := refuseOverwrite(cmd, outPath); err != nil {
+				return err
 			}
 			if g.dryRun {
 				return done(cmd, newFilesOut([]string{outPath}, "would merge "+strconv.Itoa(len(args))+" files"))
@@ -89,6 +97,9 @@ func pdfCompress() *cobra.Command {
 			if outPath == "" {
 				outPath = pdfx.DefaultOut(args[0], ".compressed", ".pdf")
 			}
+			if err := refuseOverwrite(cmd, outPath); err != nil {
+				return err
+			}
 			if g.dryRun {
 				return done(cmd, newFilesOut([]string{outPath}, ""))
 			}
@@ -120,6 +131,9 @@ func pdfRotate() *cobra.Command {
 			var sel []string
 			if pages != "" {
 				sel = []string{pages}
+			}
+			if err := refuseOverwrite(cmd, outPath); err != nil {
+				return err
 			}
 			if g.dryRun {
 				return done(cmd, newFilesOut([]string{outPath}, ""))
@@ -156,6 +170,9 @@ func pdfWatermark() *cobra.Command {
 			var sel []string
 			if pages != "" {
 				sel = []string{pages}
+			}
+			if err := refuseOverwrite(cmd, outPath); err != nil {
+				return err
 			}
 			if g.dryRun {
 				return done(cmd, newFilesOut([]string{outPath}, ""))
@@ -218,6 +235,9 @@ func pdfFromImage() *cobra.Command {
 			if outPath == "" {
 				outPath = "images.pdf"
 			}
+			if err := refuseOverwrite(cmd, outPath); err != nil {
+				return err
+			}
 			if g.dryRun {
 				return done(cmd, newFilesOut([]string{outPath}, ""))
 			}
@@ -240,4 +260,119 @@ func pdfErr(code, hint string, err error) error {
 		msg = msg[i+2:]
 	}
 	return out.Errf(out.ExitError, code, hint, "%s", msg)
+}
+
+func pdfInfo() *cobra.Command {
+	return &cobra.Command{
+		Use:   "info FILE [FILE...]",
+		Short: "Show pages, page size, metadata and encryption of PDFs",
+		Args:  cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := requireFiles(args); err != nil {
+				return err
+			}
+			res := infoOut{Files: []pdfx.Info{}}
+			for _, f := range args {
+				info, err := pdfx.ReadInfo(context.Background(), f)
+				if err != nil {
+					return pdfErr("PDF_INFO", "check the input PDF", err)
+				}
+				res.Files = append(res.Files, info)
+			}
+			return done(cmd, res)
+		},
+	}
+}
+
+type infoOut struct {
+	Files []pdfx.Info `json:"files"`
+}
+
+func (r infoOut) Text() string {
+	var b strings.Builder
+	for _, i := range r.Files {
+		fmt.Fprintf(&b, "%s  PDF %s, %d pages, %s, %d bytes\n", out.SafeText(i.File), i.Version, i.Pages, i.PageSize, i.SizeBytes)
+		for _, kv := range [][2]string{{"title", i.Title}, {"author", i.Author}, {"creator", i.Creator}, {"producer", i.Producer}, {"created", i.Created}, {"modified", i.Modified}} {
+			if kv[1] != "" {
+				fmt.Fprintf(&b, "  %-9s %s\n", kv[0], out.SafeText(kv[1]))
+			}
+		}
+		fmt.Fprintf(&b, "  encrypted %t, form %t, signatures %t\n", i.Encrypted, i.Form, i.Signatures)
+	}
+	return b.String()
+}
+
+func pdfProtect() *cobra.Command {
+	return pdfPasswordCmd("protect", "Encrypt a PDF with a password (AES-256)", ".protected", "PDF_PROTECT", pdfx.Protect)
+}
+
+func pdfUnlock() *cobra.Command {
+	return pdfPasswordCmd("unlock", "Remove the password from a PDF", ".unlocked", "PDF_UNLOCK", pdfx.Unlock)
+}
+
+// pdfPasswordCmd builds protect and unlock. The password comes from a file
+// or stdin, never a flag value, so it does not show in the process list or
+// shell history.
+func pdfPasswordCmd(verb, short, suffix, code string, fn func(context.Context, string, string, string) error) *cobra.Command {
+	var pwFile string
+	cmd := &cobra.Command{
+		Use:   verb + " FILE --password-file FILE",
+		Short: short,
+		Long: short + `.
+
+The password is read from --password-file (the first line), or from stdin
+with --password-file -. It is never taken as a flag value, so it does not
+appear in the process list or shell history.`,
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := requireFiles(args); err != nil {
+				return err
+			}
+			if pwFile == "" {
+				return out.Usage("--password-file is required (a file, or - for stdin)")
+			}
+			outPath, _ := writeFlag(cmd)
+			if outPath == "" {
+				outPath = pdfx.DefaultOut(args[0], suffix, ".pdf")
+			}
+			if err := refuseOverwrite(cmd, outPath); err != nil {
+				return err
+			}
+			if g.dryRun {
+				return done(cmd, newFilesOut([]string{outPath}, "would write "+outPath))
+			}
+			pw, err := readPassword(cmd, pwFile)
+			if err != nil {
+				return err
+			}
+			if err := fn(context.Background(), args[0], outPath, pw); err != nil {
+				return pdfErr(code, "check the password and the input PDF", err)
+			}
+			return done(cmd, newFilesOut([]string{outPath}, ""))
+		},
+	}
+	cmd.Flags().StringVar(&pwFile, "password-file", "", "file holding the password, or - for stdin")
+	addWriteFlags(cmd)
+	return cmd
+}
+
+func readPassword(cmd *cobra.Command, path string) (string, error) {
+	var r io.Reader = cmd.InOrStdin()
+	if path != "-" {
+		f, err := os.Open(path)
+		if err != nil {
+			return "", out.Errf(out.ExitNotFound, "NOT_FOUND", "check --password-file", "%s: no such file", path)
+		}
+		defer f.Close()
+		r = f
+	}
+	line, err := bufio.NewReader(io.LimitReader(r, 4096)).ReadString('\n')
+	if err != nil && err != io.EOF {
+		return "", out.Errf(out.ExitError, "PASSWORD", "check --password-file", "read password: %v", err)
+	}
+	pw := strings.TrimRight(line, "\r\n")
+	if pw == "" {
+		return "", out.Usage("the password is empty")
+	}
+	return pw, nil
 }

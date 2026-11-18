@@ -10,6 +10,7 @@ import (
 	"image/gif"
 	"image/jpeg"
 	"image/png"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,6 +30,10 @@ const (
 	FormatGIF  Format = "gif"
 )
 
+// MaxPixels caps width x height before decoding (100 megapixels, about
+// 400 MB as RGBA). A small file can declare a huge size and exhaust memory.
+const MaxPixels = 100_000_000
+
 // Open decodes an image file.
 func Open(path string) (image.Image, Format, error) {
 	f, err := os.Open(path)
@@ -36,6 +41,16 @@ func Open(path string) (image.Image, Format, error) {
 		return nil, "", err
 	}
 	defer f.Close()
+	cfg, _, err := image.DecodeConfig(f)
+	if err != nil {
+		return nil, "", err
+	}
+	if cfg.Width <= 0 || cfg.Height <= 0 || int64(cfg.Width)*int64(cfg.Height) > MaxPixels {
+		return nil, "", fmt.Errorf("image is %dx%d, over the %d megapixel limit", cfg.Width, cfg.Height, MaxPixels/1_000_000)
+	}
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		return nil, "", err
+	}
 	img, format, err := image.Decode(f)
 	if err != nil {
 		return nil, "", err

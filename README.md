@@ -32,6 +32,7 @@ toolips tls check example.com
 ```
 
 Agents: add `-o json` (or pipe stdout). Read `error.hint` on failure.
+The agent skill is [skills/toolips/SKILL.md](skills/toolips/SKILL.md).
 
 ## Commands
 
@@ -40,12 +41,14 @@ Agents: add `-o json` (or pipe stdout). Read `error.hint` on failure.
 | `pdf merge / split / compress / rotate / watermark` | PDF editing (pdfcpu) |
 | `pdf to-image` | Extract **embedded** images (not page rasterization) |
 | `pdf from-image` | Build a PDF from images |
+| `pdf info` | Pages, page size, metadata, encryption |
+| `pdf protect / unlock` | Add or remove a password (AES-256) |
 | `image compress / resize / convert / crop / rotate / watermark / grayscale` | JPG, PNG, GIF (multi-file, folder, or glob) |
 | `tls check` | Expiry, chain, protocol |
 | `headers check` | Security header grade |
 | `secret scan` | Local regex for keys/tokens |
 | `ct search` | Certificate transparency (crt.sh) |
-| `version` / `list` / `guide` | About toolips |
+| `version` / `list` / `guide` / `completion` | About toolips, shell completion |
 
 Global flags: `-o text\|json\|auto`, `--pretty`, `--dry-run` (writes).
 File output: `--out` / `--outdir`.

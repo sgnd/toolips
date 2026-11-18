@@ -8,7 +8,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	"bytes"
+	"encoding/binary"
 	"github.com/sgnd/toolips/internal/imgx"
+	"hash/crc32"
+	"strings"
 )
 
 func TestResizeRotateCropGrayscale(t *testing.T) {
@@ -152,5 +156,26 @@ func TestRotateAndCropBounds(t *testing.T) {
 	}
 	if _, err := imgx.Crop(img, 2, 0, 4, 2); err == nil {
 		t.Error("crop outside bounds accepted")
+	}
+}
+
+// TestOpenRejectsHugeDeclaredSize writes a tiny PNG whose header claims
+// 20000x20000 pixels; Open must refuse it before allocating.
+func TestOpenRejectsHugeDeclaredSize(t *testing.T) {
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, image.NewGray(image.Rect(0, 0, 1, 1))); err != nil {
+		t.Fatal(err)
+	}
+	b := buf.Bytes()
+	// IHDR data starts at byte 16: width, height (big endian), then CRC at 29.
+	binary.BigEndian.PutUint32(b[16:], 20000)
+	binary.BigEndian.PutUint32(b[20:], 20000)
+	binary.BigEndian.PutUint32(b[29:], crc32.ChecksumIEEE(b[12:29]))
+	path := filepath.Join(t.TempDir(), "bomb.png")
+	if err := os.WriteFile(path, b, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := imgx.Open(path); err == nil || !strings.Contains(err.Error(), "megapixel") {
+		t.Fatalf("got %v, want megapixel limit error", err)
 	}
 }
