@@ -24,9 +24,33 @@ AI agents. The product goal and philosophy are in brainOS `AGENTS.md`
 | 1.8 | Private: files never leave the machine; only `tls`, `headers` and `ct` use the network, stated in `--help` and tested | done |
 | 1.9 | Secure: security review of the CLI (paths, archives, network inputs) with the `security-audit` skill; record in `docs/security/2026-11-18-cli-review.md` | done |
 | 1.10 | For agents: agent skill file (`skills/toolips/SKILL.md`) like komando's | done |
-| 1.11 | Killer-feature gap list: compare with the top online tools and add the missing everyday verbs as plan items | open |
+| 1.11 | Killer-feature gap list: compare with the top online tools and add the missing everyday verbs as plan items (the gap list below) | done |
 | 1.12 | Refuse to replace an existing output file unless `--force` is given (from the security review) | done |
 | 1.13 | Fuzz PDF input for decompression bombs in a sandbox (from the security review) | open |
+
+## Phase 1b: killer-feature gaps
+
+From plan item 1.11: what the top online tools offer that toolips does not
+yet. Every item must run locally in pure Go (no CGO). Priority: A first
+(common need, library already in `go.mod`), then B, then C.
+
+| # | Item | Online tool it replaces | Priority | Status |
+|---|---|---|---|---|
+| 1.14 | `pdf protect` / `pdf unlock` (password, pdfcpu `crypto`) | iLovePDF Protect, Unlock | A | open |
+| 1.15 | `pdf pages`: extract, delete and reorder pages (pdfcpu `collect`, `trim`) | iLovePDF Organize, Remove pages | A | open |
+| 1.16 | `pdf info`: pages, size, metadata, encryption (pdfcpu `info`) | many PDF sites | A | open |
+| 1.17 | `pdf number`: add page numbers (pdfcpu `stamp`) | iLovePDF Page numbers | A | open |
+| 1.18 | Read WebP input (`golang.org/x/image/webp`, decode only) and BMP/TIFF input | iLoveIMG, Squoosh | A | open |
+| 1.19 | `image strip`: remove EXIF and GPS metadata | photo privacy sites | A | open |
+| 1.20 | `dns check`: A, MX, SPF, DMARC, CAA records of a domain (network) | MXToolbox | B | open |
+| 1.21 | `hash`: SHA-256 and other checksums of files, verify against a sum | online hash sites | B | open |
+| 1.22 | `qr make`: QR code PNG from text or a URL | QR code generators | B | open |
+| 1.23 | `jwt decode`: show a token's header and claims, never send it | jwt.io | B | open |
+| 1.24 | `pdf nup` / `pdf booklet`: several pages per sheet (pdfcpu `nup`, `booklet`) | iLovePDF | C | open |
+| 1.25 | Write WebP output | Squoosh | C | deferred: needs a pure-Go WebP encoder; none in `golang.org/x/image` |
+| 1.26 | Render PDF pages to images | iLovePDF PDF to JPG | C | deferred: needs a renderer, which means CGO (see AGENTS.md rule 4) |
+| 1.27 | Office to PDF and PDF to Office | iLovePDF Word to PDF | C | deferred: no pure-Go converter; needs a design decision |
+| 1.28 | Background removal, upscaling, OCR | remove.bg, iLoveIMG | C | deferred: needs ML models; fits the paid apps better |
 
 ## Phase 2: paid plan
 
