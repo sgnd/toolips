@@ -4,6 +4,10 @@ All notable changes to toolips are listed here.
 
 ## [Unreleased]
 
+### Fixed
+
+- PDF commands refuse files over 512 MiB and streams that decode to more than 256 MiB (`PDF_TOO_LARGE`), so a small PDF bomb cannot exhaust memory.
+
 ## [0.0.1] - 2026-11-18
 
 The first release.

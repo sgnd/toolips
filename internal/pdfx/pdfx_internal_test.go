@@ -7,7 +7,11 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
+	"bytes"
+	"compress/zlib"
+	"fmt"
 	"github.com/pdfcpu/pdfcpu/pkg/api"
 )
 
@@ -104,5 +108,113 @@ func TestNumberPages(t *testing.T) {
 	}
 	if err := NumberPages(ctx, src, filepath.Join(dir, "x.pdf"), "", "middle", nil); err == nil {
 		t.Error("bad position accepted")
+	}
+}
+
+func bombPDF(t testing.TB, inflated int) string {
+	var z bytes.Buffer
+	w, _ := zlib.NewWriterLevel(&z, zlib.BestCompression)
+	_, _ = w.Write(make([]byte, inflated))
+	_ = w.Close()
+	objs := []string{
+		"<< /Type /Catalog /Pages 2 0 R >>",
+		"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+		"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 100 100] /Contents 4 0 R >>",
+		fmt.Sprintf("<< /Length %d /Filter /FlateDecode >>\nstream\n%s\nendstream", z.Len(), z.Bytes()),
+	}
+	var b bytes.Buffer
+	b.WriteString("%PDF-1.7\n")
+	offs := []int{}
+	for i, o := range objs {
+		offs = append(offs, b.Len())
+		fmt.Fprintf(&b, "%d 0 obj\n%s\nendobj\n", i+1, o)
+	}
+	x := b.Len()
+	fmt.Fprintf(&b, "xref\n0 %d\n0000000000 65535 f \n", len(objs)+1)
+	for _, o := range offs {
+		fmt.Fprintf(&b, "%010d 00000 n \n", o)
+	}
+	fmt.Fprintf(&b, "trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n", len(objs)+1, x)
+	p := filepath.Join(t.TempDir(), "bomb.pdf")
+	_ = os.WriteFile(p, b.Bytes(), 0o644)
+	return p
+}
+
+// TestBombIsRefused: a 4 MiB zero stream against a 1 MiB limit. Every
+// command that decodes page content must stop with the limit error.
+func TestBombIsRefused(t *testing.T) {
+	old := Limits
+	Limits.DecodeBytes = 1 << 20
+	defer func() { Limits = old }()
+	p := bombPDF(t, 4<<20)
+	ctx := context.Background()
+	d := t.TempDir()
+	errs := map[string]error{
+		"compress":  Compress(ctx, p, filepath.Join(d, "c.pdf")),
+		"number":    NumberPages(ctx, p, filepath.Join(d, "n.pdf"), "%p", "bc", nil),
+		"watermark": Watermark(ctx, p, filepath.Join(d, "w.pdf"), "x", "", nil),
+		"pages":     KeepPages(ctx, p, filepath.Join(d, "k.pdf"), "1"),
+	}
+	for name, err := range errs {
+		if !IsTooLarge(err) {
+			t.Errorf("%s: got %v, want the decode limit error", name, err)
+		}
+	}
+}
+
+func TestInputSizeLimit(t *testing.T) {
+	old := Limits
+	Limits.InputBytes = 100
+	defer func() { Limits = old }()
+	p := bombPDF(t, 10)
+	if _, err := ReadInfo(context.Background(), p); !IsTooLarge(err) {
+		t.Errorf("got %v, want the input size limit error", err)
+	}
+}
+
+// FuzzReadInfo and FuzzCompress feed arbitrary bytes to the PDF reader.
+// Run them with a time and memory limit, as docs/security records.
+func FuzzReadInfo(f *testing.F) {
+	fuzzSeeds(f)
+	f.Fuzz(func(t *testing.T, data []byte) {
+		p := filepath.Join(t.TempDir(), "f.pdf")
+		if err := os.WriteFile(p, data, 0o600); err != nil {
+			t.Fatal(err)
+		}
+		withinTime(t, func() { _, _ = ReadInfo(context.Background(), p) })
+	})
+}
+
+func FuzzCompress(f *testing.F) {
+	fuzzSeeds(f)
+	f.Fuzz(func(t *testing.T, data []byte) {
+		d := t.TempDir()
+		p := filepath.Join(d, "f.pdf")
+		if err := os.WriteFile(p, data, 0o600); err != nil {
+			t.Fatal(err)
+		}
+		withinTime(t, func() { _ = Compress(context.Background(), p, filepath.Join(d, "out.pdf")) })
+	})
+}
+
+func fuzzSeeds(f *testing.F) {
+	for _, n := range []int{0, 100, 64 << 10} {
+		b, err := os.ReadFile(bombPDF(f, n))
+		if err == nil {
+			f.Add(b)
+		}
+	}
+	f.Add([]byte("%PDF-1.7\n%%EOF\n"))
+}
+
+// withinTime fails the fuzz input when fn runs longer than 5 seconds, so
+// the fuzzer saves inputs that hang, not only inputs that crash.
+func withinTime(t *testing.T, fn func()) {
+	done := make(chan struct{})
+	go func() { fn(); close(done) }()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("took longer than 5s")
 	}
 }
