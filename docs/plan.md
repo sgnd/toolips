@@ -26,7 +26,7 @@ AI agents. The product goal and philosophy are in brainOS `AGENTS.md`
 | 1.10 | For agents: agent skill file (`skills/toolips/SKILL.md`) like komando's | done |
 | 1.11 | Killer-feature gap list: compare with the top online tools and add the missing everyday verbs as plan items (the gap list below) | done |
 | 1.12 | Refuse to replace an existing output file unless `--force` is given (from the security review) | done |
-| 1.13 | Fuzz PDF input for decompression bombs in a sandbox (from the security review) | open |
+| 1.13 | Fuzz PDF input for decompression bombs in a sandbox (from the security review) | open: not small. pdfcpu has no size cap, so a fix needs our own guard (stream size or decode budget) plus a fuzz run with memory and time limits. Not needed for 0.0.1: the risk is a local out-of-memory on a file the user chose |
 
 ## Phase 1b: killer-feature gaps
 
