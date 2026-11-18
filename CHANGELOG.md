@@ -16,6 +16,7 @@ All notable changes to toolips are listed here.
 
 - `completion` is listed in `toolips list`.
 - `toolips --help` and `toolips list` say which commands use the network (`tls`, `headers`, `ct`).
+- Agent skill `skills/toolips/SKILL.md`, with a test that every command it names exists.
 
 ## [0.0.1] — 2026-11-17
 

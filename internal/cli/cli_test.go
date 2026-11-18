@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -358,5 +359,34 @@ func TestListMatchesCommands(t *testing.T) {
 	}
 	for n := range names {
 		t.Errorf("command %q is missing from list", n)
+	}
+}
+
+// TestSkillCommandsExist keeps skills/toolips/SKILL.md honest: every
+// `toolips NOUN VERB` it names must be a real command.
+func TestSkillCommandsExist(t *testing.T) {
+	body, err := os.ReadFile(filepath.Join("..", "..", "skills", "toolips", "SKILL.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	re := regexp.MustCompile("toolips ([a-z-]+)(?: ([a-z-]+))?")
+	root := newRoot()
+	found := 0
+	for _, m := range re.FindAllStringSubmatch(string(body), -1) {
+		if m[1] == "is" || m[1] == "never" || m[1] == "version" && m[2] == "" {
+			continue
+		}
+		args := []string{m[1]}
+		if m[2] != "" {
+			args = append(args, m[2])
+		}
+		cmd, rest, err := root.Find(args)
+		if err != nil || cmd == root || (m[2] != "" && len(rest) > 0 && cmd.HasSubCommands()) {
+			t.Errorf("SKILL.md names %q, which is not a command", m[0])
+		}
+		found++
+	}
+	if found < 10 {
+		t.Fatalf("only %d commands found in SKILL.md; is the pattern still right?", found)
 	}
 }

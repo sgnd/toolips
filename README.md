@@ -32,6 +32,7 @@ toolips tls check example.com
 ```
 
 Agents: add `-o json` (or pipe stdout). Read `error.hint` on failure.
+The agent skill is [skills/toolips/SKILL.md](skills/toolips/SKILL.md).
 
 ## Commands
 
