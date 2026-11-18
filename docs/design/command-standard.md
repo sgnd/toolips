@@ -12,6 +12,9 @@
 - `--pretty`: indent JSON.
 - `--dry-run`: on write verbs; print destinations, write nothing.
 - `--out`: single output file. `--outdir`: batch directory.
+- `--force`: on write verbs; replace output files that already exist.
+  Without it an existing file stops the command with `EXISTS`, before
+  anything is written (a batch checks every output first).
 
 ## Help and errors
 

@@ -34,6 +34,9 @@ func pdfMerge() *cobra.Command {
 			if outPath == "" {
 				outPath = "merged.pdf"
 			}
+			if err := refuseOverwrite(cmd, outPath); err != nil {
+				return err
+			}
 			if g.dryRun {
 				return done(cmd, newFilesOut([]string{outPath}, "would merge "+strconv.Itoa(len(args))+" files"))
 			}
@@ -89,6 +92,9 @@ func pdfCompress() *cobra.Command {
 			if outPath == "" {
 				outPath = pdfx.DefaultOut(args[0], ".compressed", ".pdf")
 			}
+			if err := refuseOverwrite(cmd, outPath); err != nil {
+				return err
+			}
 			if g.dryRun {
 				return done(cmd, newFilesOut([]string{outPath}, ""))
 			}
@@ -120,6 +126,9 @@ func pdfRotate() *cobra.Command {
 			var sel []string
 			if pages != "" {
 				sel = []string{pages}
+			}
+			if err := refuseOverwrite(cmd, outPath); err != nil {
+				return err
 			}
 			if g.dryRun {
 				return done(cmd, newFilesOut([]string{outPath}, ""))
@@ -156,6 +165,9 @@ func pdfWatermark() *cobra.Command {
 			var sel []string
 			if pages != "" {
 				sel = []string{pages}
+			}
+			if err := refuseOverwrite(cmd, outPath); err != nil {
+				return err
 			}
 			if g.dryRun {
 				return done(cmd, newFilesOut([]string{outPath}, ""))
@@ -217,6 +229,9 @@ func pdfFromImage() *cobra.Command {
 			outPath, _ := writeFlag(cmd)
 			if outPath == "" {
 				outPath = "images.pdf"
+			}
+			if err := refuseOverwrite(cmd, outPath); err != nil {
+				return err
 			}
 			if g.dryRun {
 				return done(cmd, newFilesOut([]string{outPath}, ""))

@@ -216,6 +216,19 @@ func writeFlag(cmd *cobra.Command) (outPath, outDir string) {
 func addWriteFlags(cmd *cobra.Command) {
 	cmd.Flags().String("out", "", "output file path")
 	cmd.Flags().String("outdir", "", "output directory for batch writes")
+	cmd.Flags().Bool("force", false, "replace output files that already exist")
+}
+
+// refuseOverwrite stops a write that would replace an existing file, unless
+// --force is set. It runs in --dry-run too, so the plan shows the stop.
+func refuseOverwrite(cmd *cobra.Command, path string) error {
+	if force, _ := cmd.Flags().GetBool("force"); force {
+		return nil
+	}
+	if _, err := os.Lstat(path); err == nil {
+		return out.Errf(out.ExitError, "EXISTS", "pass --force to replace it, or choose another --out", "%s already exists", path)
+	}
+	return nil
 }
 
 func fileResultText(paths []string) string {

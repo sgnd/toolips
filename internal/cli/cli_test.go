@@ -390,3 +390,40 @@ func TestSkillCommandsExist(t *testing.T) {
 		t.Fatalf("only %d commands found in SKILL.md; is the pattern still right?", found)
 	}
 }
+
+func TestRefuseOverwriteUnlessForce(t *testing.T) {
+	dir := t.TempDir()
+	img := filepath.Join(dir, "p.png")
+	writePNG(t, img, 8, 8)
+	pdf := filepath.Join(dir, "out.pdf")
+	if code := runCaptured(t, []string{"pdf", "from-image", img, "--out", pdf}); code != 0 {
+		t.Fatalf("first write exit %d", code)
+	}
+	for _, extra := range [][]string{nil, {"--dry-run"}} {
+		args := append([]string{"pdf", "from-image", img, "--out", pdf, "-o", "json"}, extra...)
+		code, env := runFailure(t, args)
+		e, _ := env["error"].(map[string]any)
+		if code != out.ExitError || e["code"] != "EXISTS" {
+			t.Errorf("%v: exit %d, error %v", extra, code, e)
+		}
+	}
+	if code := runCaptured(t, []string{"pdf", "from-image", img, "--out", pdf, "--force"}); code != 0 {
+		t.Fatalf("--force exit %d", code)
+	}
+
+	// A batch with one existing output writes nothing at all.
+	outDir := filepath.Join(dir, "gray")
+	writePNG(t, filepath.Join(dir, "q.png"), 8, 8)
+	if err := os.MkdirAll(outDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	taken := filepath.Join(outDir, "q.gray.png")
+	writePNG(t, taken, 2, 2)
+	code, _ := runFailure(t, []string{"image", "grayscale", img, filepath.Join(dir, "q.png"), "--outdir", outDir, "-o", "json"})
+	if code != out.ExitError {
+		t.Fatalf("batch exit %d", code)
+	}
+	if ents, _ := os.ReadDir(outDir); len(ents) != 1 {
+		t.Errorf("batch wrote %d files before stopping, want none", len(ents)-1)
+	}
+}

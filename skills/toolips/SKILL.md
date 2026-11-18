@@ -29,6 +29,8 @@ line.
    command would write, then run it again without the flag.
 2. **Name the output.** `--out FILE` for one result, `--outdir DIR` for
    many. `-o` is only the output format (`text` or `json`), never a file.
+   An existing output file stops the command with `EXISTS`; pass `--force`
+   only when the human wants it replaced.
 3. **Pass many images at once.** Image commands take several files, a
    folder, or a quoted glob such as `"*.png"`; you do not need the shell to
    expand it.

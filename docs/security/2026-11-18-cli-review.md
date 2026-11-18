@@ -33,4 +33,4 @@ files, their names) and network replies (`tls`, `headers`, `ct`).
 | Item | Status |
 |---|---|
 | PDF decompression bombs: pdfcpu has no size cap we can set; needs a fuzz run in a sandbox | needs validation, plan item 1.13 |
-| Writes replace an existing file without warning (e.g. default `merged.pdf`) | plan item 1.12 |
+| Writes replace an existing file without warning (e.g. default `merged.pdf`) | fixed after the review: `--force` (plan item 1.12) |

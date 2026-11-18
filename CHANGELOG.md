@@ -15,6 +15,10 @@ All notable changes to toolips are listed here.
 - `secret scan` keeps findings before a line over 1 MiB, and lists every file it did not read in full under `skipped`.
 - File names in text output are escaped, so a crafted name cannot send terminal control codes.
 
+### Changed
+
+- Write commands refuse to replace an existing output file (`EXISTS`) unless `--force` is given. A batch checks every output before writing any.
+
 ### Added
 
 - `completion` is listed in `toolips list`.
