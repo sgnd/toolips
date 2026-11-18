@@ -27,6 +27,9 @@ func pdfMerge() *cobra.Command {
 		Short: "Merge PDF files into one",
 		Args:  cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := requireFiles(args); err != nil {
+				return err
+			}
 			outPath, _ := writeFlag(cmd)
 			if outPath == "" {
 				outPath = "merged.pdf"
@@ -51,6 +54,9 @@ func pdfSplit() *cobra.Command {
 		Short: "Split a PDF into smaller files",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := requireFiles(args); err != nil {
+				return err
+			}
 			_, outDir := writeFlag(cmd)
 			if outDir == "" {
 				outDir = strings.TrimSuffix(args[0], filepath.Ext(args[0])) + "_pages"
@@ -76,6 +82,9 @@ func pdfCompress() *cobra.Command {
 		Short: "Compress (optimize) a PDF",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := requireFiles(args); err != nil {
+				return err
+			}
 			outPath, _ := writeFlag(cmd)
 			if outPath == "" {
 				outPath = pdfx.DefaultOut(args[0], ".compressed", ".pdf")
@@ -101,6 +110,9 @@ func pdfRotate() *cobra.Command {
 		Short: "Rotate PDF pages (90/180/270)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := requireFiles(args); err != nil {
+				return err
+			}
 			outPath, _ := writeFlag(cmd)
 			if outPath == "" {
 				outPath = pdfx.DefaultOut(args[0], ".rotated", ".pdf")
@@ -131,6 +143,9 @@ func pdfWatermark() *cobra.Command {
 		Short: "Add a text watermark to a PDF",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := requireFiles(args); err != nil {
+				return err
+			}
 			if text == "" {
 				return out.Usage("--text is required")
 			}
@@ -168,6 +183,9 @@ This does not rasterize pages. True page-to-image rendering needs CGO
 (and is intentionally omitted so toolips stays CGO_ENABLED=0).`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := requireFiles(args); err != nil {
+				return err
+			}
 			_, outDir := writeFlag(cmd)
 			if outDir == "" {
 				outDir = strings.TrimSuffix(args[0], filepath.Ext(args[0])) + "_images"
@@ -193,6 +211,9 @@ func pdfFromImage() *cobra.Command {
 		Short:   "Build a PDF from image files",
 		Args:    cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := requireFiles(args); err != nil {
+				return err
+			}
 			outPath, _ := writeFlag(cmd)
 			if outPath == "" {
 				outPath = "images.pdf"

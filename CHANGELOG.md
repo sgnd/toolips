@@ -4,6 +4,10 @@ All notable changes to toolips are listed here.
 
 ## [Unreleased]
 
+### Fixed
+
+- A missing input file now fails with `NOT_FOUND` (exit 3) in `pdf` and `secret scan`.
+
 ## [0.1.0] — 2026-11-17
 
 ### Added
