@@ -97,3 +97,39 @@ func cmdCT() *cobra.Command {
 	ct.AddCommand(search)
 	return ct
 }
+
+func cmdDNS() *cobra.Command {
+	dns := &cobra.Command{Use: "dns", Short: "DNS checks (network)"}
+	var server string
+	var timeout time.Duration
+	check := &cobra.Command{
+		Use:   "check DOMAIN",
+		Short: "Show a domain's A, AAAA, MX, SPF and DMARC records and flag mail problems",
+		Long: `Show a domain's A, AAAA, MX, SPF and DMARC records and flag mail problems.
+
+It flags a missing MX, SPF or DMARC record, more than one SPF record, and a
+DMARC policy of p=none. It asks the system's DNS resolver, or --server.`,
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var r secx.Resolver
+			if server != "" {
+				r = secx.ResolverFor(server)
+			}
+			res := secx.CheckDNS(args[0], r, timeout)
+			if res.Error != "" {
+				exit, hint := out.ExitNetwork, "check the domain, --server and the network"
+				if res.NotFound {
+					exit, hint = out.ExitNotFound, "check the spelling of the domain"
+				}
+				e := out.Errf(exit, "DNS_CHECK", hint, "%s", res.Error)
+				out.P.Print(commandID(cmd), res, e)
+				return exitCode(e.Exit)
+			}
+			return done(cmd, res)
+		},
+	}
+	check.Flags().StringVar(&server, "server", "", "DNS server to ask, as host or host:port (default: the system resolver)")
+	check.Flags().DurationVar(&timeout, "timeout", 10*time.Second, "time allowed for all lookups")
+	dns.AddCommand(check)
+	return dns
+}

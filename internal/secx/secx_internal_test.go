@@ -1,7 +1,9 @@
 package secx
 
 import (
+	"context"
 	"crypto/tls"
+	"errors"
 	"net"
 	"os"
 	"path/filepath"
@@ -90,5 +92,99 @@ func TestScanTextEscapesFileNames(t *testing.T) {
 	res := ScanResult{Count: 1, Findings: []Finding{{File: "a\x1b[2Jb\rc", Line: 1, Rule: "r", Snippet: "s"}}}
 	if txt := res.Text(); strings.ContainsAny(txt, "\x1b\r") {
 		t.Errorf("control characters reached the terminal: %q", txt)
+	}
+}
+
+type fakeResolver struct {
+	ips  []net.IPAddr
+	mx   []*net.MX
+	txt  map[string][]string
+	fail error
+}
+
+func (f fakeResolver) LookupIPAddr(_ context.Context, _ string) ([]net.IPAddr, error) {
+	if f.fail != nil {
+		return nil, f.fail
+	}
+	if len(f.ips) == 0 {
+		return nil, &net.DNSError{Err: "no such host", IsNotFound: true}
+	}
+	return f.ips, nil
+}
+
+func (f fakeResolver) LookupMX(_ context.Context, _ string) ([]*net.MX, error) {
+	if f.fail != nil {
+		return nil, f.fail
+	}
+	if len(f.mx) == 0 {
+		return nil, &net.DNSError{Err: "no such host", IsNotFound: true}
+	}
+	return f.mx, nil
+}
+
+func (f fakeResolver) LookupTXT(_ context.Context, name string) ([]string, error) {
+	if f.fail != nil {
+		return nil, f.fail
+	}
+	if t, ok := f.txt[name]; ok {
+		return t, nil
+	}
+	return nil, &net.DNSError{Err: "no such host", IsNotFound: true}
+}
+
+func TestCheckDNS(t *testing.T) {
+	good := fakeResolver{
+		ips: []net.IPAddr{{IP: net.ParseIP("192.0.2.1")}, {IP: net.ParseIP("2001:db8::1")}},
+		mx:  []*net.MX{{Host: "mx2.example.com.", Pref: 20}, {Host: "mx1.example.com.", Pref: 10}},
+		txt: map[string][]string{
+			"example.com":        {"v=spf1 mx -all", "other"},
+			"_dmarc.example.com": {"v=DMARC1; p=reject"},
+		},
+	}
+	res := CheckDNS("Example.com.", good, time.Second)
+	if res.Error != "" || len(res.A) != 1 || len(res.AAAA) != 1 || res.MX[0].Host != "mx1.example.com" || len(res.SPF) != 1 {
+		t.Fatalf("good = %+v", res)
+	}
+	if len(res.Problems) != 0 {
+		t.Errorf("good domain has problems: %v", res.Problems)
+	}
+
+	weak := fakeResolver{
+		ips: []net.IPAddr{{IP: net.ParseIP("192.0.2.1")}},
+		txt: map[string][]string{
+			"example.com":        {"v=spf1 a -all", "v=spf1 mx -all"},
+			"_dmarc.example.com": {"v=DMARC1; p = none"},
+		},
+	}
+	res = CheckDNS("example.com", weak, time.Second)
+	got := strings.Join(res.Problems, "|")
+	for _, want := range []string{"no MX", "2 SPF records", "p=none"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("problems %q lack %q", got, want)
+		}
+	}
+
+	res = CheckDNS("nope.example", fakeResolver{}, time.Second)
+	if !res.NotFound || res.Error == "" {
+		t.Errorf("missing domain = %+v", res)
+	}
+	res = CheckDNS("example.com", fakeResolver{fail: errors.New("connection refused")}, time.Second)
+	if res.NotFound || res.Error == "" {
+		t.Errorf("network failure = %+v", res)
+	}
+	if txt := (DNSCheck{Domain: "d", Problems: []string{"x\x1b[2J"}}).Text(); strings.Contains(txt, "\x1b") {
+		t.Errorf("text not escaped: %q", txt)
+	}
+}
+
+func TestCheckDNSNullMX(t *testing.T) {
+	r := fakeResolver{
+		ips: []net.IPAddr{{IP: net.ParseIP("192.0.2.1")}},
+		mx:  []*net.MX{{Host: ".", Pref: 0}},
+		txt: map[string][]string{"example.com": {"v=spf1 -all"}, "_dmarc.example.com": {"v=DMARC1; p=reject"}},
+	}
+	res := CheckDNS("example.com", r, time.Second)
+	if len(res.Problems) != 0 || !strings.Contains(res.Text(), "null MX") {
+		t.Errorf("null MX: problems %v, text %q", res.Problems, res.Text())
 	}
 }

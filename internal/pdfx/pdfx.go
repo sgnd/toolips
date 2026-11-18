@@ -4,12 +4,14 @@ package pdfx
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/pdfcpu/pdfcpu/pkg/api"
+	"github.com/pdfcpu/pdfcpu/pkg/filter"
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/types"
 )
@@ -23,7 +25,20 @@ func conf() *model.Configuration {
 		c = model.NewDefaultConfiguration()
 	}
 	c.Offline = true
+	c.Limits.MaxInputBytes = Limits.InputBytes
+	c.Limits.MaxDecodeBytes = Limits.DecodeBytes
 	return c
+}
+
+// Limits guards against PDF bombs: small files whose streams inflate to
+// gigabytes. pdfcpu refuses inputs larger than InputBytes and any stream
+// that decodes to more than DecodeBytes. Tests lower them.
+var Limits = struct {
+	InputBytes  int64
+	DecodeBytes int64
+}{
+	InputBytes:  512 << 20,
+	DecodeBytes: 256 << 20,
 }
 
 // Merge concatenates inFiles into outFile.
@@ -209,4 +224,10 @@ func NumberPages(ctx context.Context, inFile, outFile, text, pos string, pages [
 		return err
 	}
 	return api.AddWatermarksFile(ctx, inFile, outFile, pages, wm, c)
+}
+
+// IsTooLarge reports whether err comes from Limits: a file or a stream
+// bigger than toolips allows.
+func IsTooLarge(err error) bool {
+	return errors.Is(err, filter.ErrDecodeLimitExceeded) || errors.Is(err, model.ErrInputSizeLimit)
 }

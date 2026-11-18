@@ -12,7 +12,7 @@ machine, with one command that you and an AI agent (Claude Code, Codex,
 Cursor, Gemini CLI, your own bot) can both use:
 
 - **Your files stay on your machine.** PDF, image and secret-scan commands
-  never use the network. Only `tls`, `headers` and `ct` connect, and only
+  never use the network. Only `tls`, `headers`, `ct` and `dns` connect, and only
   to the host you name.
 - **Nothing is replaced by accident.** `--dry-run` shows what a command
   would write, and an existing file is kept unless you add `--force`.
@@ -64,6 +64,7 @@ The agent skill is [skills/toolips/SKILL.md](skills/toolips/SKILL.md).
 | `headers check` | Security header grade |
 | `secret scan` | Local regex for keys/tokens |
 | `ct search` | Certificate transparency (crt.sh) |
+| `dns check` | A, AAAA, MX, SPF and DMARC records, with mail problems flagged |
 | `version` / `list` / `guide` / `completion` | About toolips, shell completion |
 
 Global flags: `-o text\|json\|auto`, `--pretty`, `--dry-run` (writes).

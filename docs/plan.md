@@ -26,7 +26,7 @@ AI agents. The product goal and philosophy are in brainOS `AGENTS.md`
 | 1.10 | For agents: agent skill file (`skills/toolips/SKILL.md`) like komando's | done |
 | 1.11 | Killer-feature gap list: compare with the top online tools and add the missing everyday verbs as plan items (the gap list below) | done |
 | 1.12 | Refuse to replace an existing output file unless `--force` is given (from the security review) | done |
-| 1.13 | Fuzz PDF input for decompression bombs in a sandbox (from the security review) | open: not small. pdfcpu has no size cap, so a fix needs our own guard (stream size or decode budget) plus a fuzz run with memory and time limits. Not needed for 0.0.1: the risk is a local out-of-memory on a file the user chose |
+| 1.13 | Fuzz PDF input for decompression bombs in a sandbox (from the security review) | done: `pdfx.Limits` plus fuzz targets; run recorded in `docs/security/2026-11-18-cli-review.md` |
 
 ## Phase 1b: killer-feature gaps
 
@@ -42,7 +42,7 @@ yet. Every item must run locally in pure Go (no CGO). Priority: A first
 | 1.17 | `pdf number`: add page numbers (pdfcpu `stamp`) | iLovePDF Page numbers | A | done |
 | 1.18 | Read WebP input (`golang.org/x/image/webp`, decode only) and BMP/TIFF input | iLoveIMG, Squoosh | A | done |
 | 1.19 | `image strip`: remove EXIF and GPS metadata | photo privacy sites | A | done |
-| 1.20 | `dns check`: A, MX, SPF, DMARC, CAA records of a domain (network) | MXToolbox | B | open |
+| 1.20 | `dns check`: A, MX, SPF, DMARC, CAA records of a domain (network) | MXToolbox | B | done, without CAA: Go's resolver cannot ask for CAA; see 1.29 |
 | 1.21 | `hash`: SHA-256 and other checksums of files, verify against a sum | online hash sites | B | open |
 | 1.22 | `qr make`: QR code PNG from text or a URL | QR code generators | B | open |
 | 1.23 | `jwt decode`: show a token's header and claims, never send it | jwt.io | B | open |
@@ -51,15 +51,18 @@ yet. Every item must run locally in pure Go (no CGO). Priority: A first
 | 1.26 | Render PDF pages to images | iLovePDF PDF to JPG | C | deferred: needs a renderer, which means CGO (see AGENTS.md rule 4) |
 | 1.27 | Office to PDF and PDF to Office | iLovePDF Word to PDF | C | deferred: no pure-Go converter; needs a design decision |
 | 1.28 | Background removal, upscaling, OCR | remove.bg, iLoveIMG | C | deferred: needs ML models; fits the paid apps better |
+| 1.29 | CAA records in `dns check` | MXToolbox | C | open: needs a DNS client library (for example `github.com/miekg/dns`), since Go's resolver has no CAA lookup |
 
 ## Phase 2: paid plan
 
 Starts only after phase 1 is done. Follows how komando's apps and cloud are built.
+toolips never builds login, accounts, plans, billing or checkout: they come
+from `efolusi/sso` and `efolusi/pay`. Items that need them say "via sso/pay".
 
 | # | Item | Status |
 |---|---|---|
 | 2.1 | Study komando-apps and komando-cloud; write the toolips design | open |
 | 2.2 | `efolusi/toolips-apps`: Mac, iPhone, iPad app over the CLI core | open |
-| 2.3 | `efolusi/toolips-cloud`: API, account, sync, billing, website | open |
+| 2.3 | `efolusi/toolips-cloud`: API, sync and website; account and billing via sso/pay | open |
 | 2.4 | Self-hosted: the cloud service can run on the user's own server | open |
-| 2.5 | Commercial: plans and pricing for apps and cloud, as in komando | open |
+| 2.5 | Commercial: plans and pricing for apps and cloud, as in komando; plans, billing and checkout via sso/pay | open |

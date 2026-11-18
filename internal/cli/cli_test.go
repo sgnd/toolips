@@ -605,3 +605,21 @@ func TestImageStrip(t *testing.T) {
 		t.Errorf("webp: exit %d, want 1", code)
 	}
 }
+
+func TestPDFTooLarge(t *testing.T) {
+	dir := t.TempDir()
+	img := filepath.Join(dir, "p.png")
+	writePNG(t, img, 8, 8)
+	pdf := filepath.Join(dir, "a.pdf")
+	if code := runCaptured(t, []string{"pdf", "from-image", img, "--out", pdf}); code != 0 {
+		t.Fatalf("from-image exit %d", code)
+	}
+	old := pdfx.Limits
+	pdfx.Limits.InputBytes = 100
+	defer func() { pdfx.Limits = old }()
+	code, env := runFailure(t, []string{"pdf", "info", pdf, "-o", "json"})
+	e, _ := env["error"].(map[string]any)
+	if code != out.ExitError || e["code"] != "PDF_TOO_LARGE" {
+		t.Errorf("exit %d, error %v", code, e)
+	}
+}

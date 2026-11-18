@@ -256,6 +256,11 @@ func pdfFromImage() *cobra.Command {
 // ("optimize: prepare PDF context: read context: xref table: X" becomes "X")
 // so the message says what is wrong, not where pdfcpu was.
 func pdfErr(code, hint string, err error) error {
+	if pdfx.IsTooLarge(err) {
+		return out.Errf(out.ExitError, "PDF_TOO_LARGE",
+			fmt.Sprintf("toolips reads PDFs up to %d MiB with streams up to %d MiB each", pdfx.Limits.InputBytes>>20, pdfx.Limits.DecodeBytes>>20),
+			"the PDF or one of its streams is too large; it may be a PDF bomb")
+	}
 	msg := err.Error()
 	if i := strings.LastIndex(msg, ": "); i >= 0 {
 		msg = msg[i+2:]
