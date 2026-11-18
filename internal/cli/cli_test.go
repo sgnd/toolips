@@ -534,3 +534,23 @@ func TestPDFPages(t *testing.T) {
 		}
 	}
 }
+
+func TestPDFNumber(t *testing.T) {
+	dir := t.TempDir()
+	img := filepath.Join(dir, "p.png")
+	writePNG(t, img, 100, 100)
+	src := filepath.Join(dir, "a.pdf")
+	if code := runCaptured(t, []string{"pdf", "from-image", img, img, "--out", src}); code != 0 {
+		t.Fatalf("from-image exit %d", code)
+	}
+	dst := filepath.Join(dir, "n.pdf")
+	if code := runCaptured(t, []string{"pdf", "number", src, "--text", "%p of %P", "--position", "br", "--out", dst}); code != 0 {
+		t.Fatalf("number exit %d", code)
+	}
+	if _, err := os.Stat(dst); err != nil {
+		t.Fatal(err)
+	}
+	if code, _ := runFailure(t, []string{"pdf", "number", src, "--position", "middle", "-o", "json"}); code != out.ExitUsage {
+		t.Errorf("bad position: exit %d", code)
+	}
+}
