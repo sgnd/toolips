@@ -77,8 +77,12 @@ func isRelease(v string) bool {
 
 func newRoot() *cobra.Command {
 	root := &cobra.Command{
-		Use:           "toolips",
-		Short:         "All-in-one everyday tools for people and agents",
+		Use:   "toolips",
+		Short: "All-in-one everyday tools for people and agents",
+		Long: `All-in-one everyday tools for people and agents.
+
+Private: pdf, image and secret commands work on local files only and never
+use the network. Only tls, headers and ct connect to the host you name.`,
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
@@ -110,6 +114,7 @@ func newRoot() *cobra.Command {
 
 	root.AddCommand(cmdVersion(), cmdList(), cmdGuide())
 	root.AddCommand(cmdPDF(), cmdImage(), cmdTLS(), cmdHeaders(), cmdSecret(), cmdCT())
+	root.InitDefaultCompletionCmd()
 	markUsageErrors(root)
 	return root
 }
@@ -126,6 +131,16 @@ func markUsageErrors(cmd *cobra.Command) {
 				return out.Usage("%s", err.Error())
 			}
 			return nil
+		}
+	}
+	if cmd.HasSubCommands() && cmd.Run == nil && cmd.RunE == nil {
+		// A group such as `pdf`: no args shows help, an unknown verb is USAGE.
+		cmd.Args = cobra.ArbitraryArgs
+		cmd.RunE = func(c *cobra.Command, a []string) error {
+			if len(a) > 0 {
+				return out.Usage("unknown command %q for %q", a[0], c.CommandPath())
+			}
+			return c.Help()
 		}
 	}
 	for _, sub := range cmd.Commands() {

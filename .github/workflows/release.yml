@@ -1,4 +1,4 @@
-# Push a tag like v0.1.0 to publish binaries and checksums.
+# Push a tag like v0.0.1 to publish binaries and checksums.
 name: Release
 
 on:

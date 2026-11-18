@@ -11,7 +11,7 @@ import (
 )
 
 func cmdTLS() *cobra.Command {
-	tls := &cobra.Command{Use: "tls", Short: "TLS checks"}
+	tls := &cobra.Command{Use: "tls", Short: "TLS checks (network)"}
 	var port string
 	var timeout time.Duration
 	check := &cobra.Command{
@@ -35,7 +35,7 @@ func cmdTLS() *cobra.Command {
 }
 
 func cmdHeaders() *cobra.Command {
-	headers := &cobra.Command{Use: "headers", Short: "HTTP security headers"}
+	headers := &cobra.Command{Use: "headers", Short: "HTTP security headers (network)"}
 	check := &cobra.Command{
 		Use:   "check URL",
 		Short: "Grade security headers on a URL",
@@ -76,7 +76,7 @@ func cmdSecret() *cobra.Command {
 }
 
 func cmdCT() *cobra.Command {
-	ct := &cobra.Command{Use: "ct", Short: "Certificate transparency"}
+	ct := &cobra.Command{Use: "ct", Short: "Certificate transparency (network)"}
 	var baseURL string
 	search := &cobra.Command{
 		Use:   "search DOMAIN",
