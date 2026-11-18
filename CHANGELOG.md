@@ -21,6 +21,8 @@ All notable changes to toolips are listed here.
 
 ### Added
 
+- `pdf number`: page numbers with `--text` (`%p`, `%P`), `--position` and `--pages`.
+- `pdf pages`: `--keep` extracts and reorders pages, `--remove` deletes them.
 - `pdf protect` and `pdf unlock`: AES-256 password, read from `--password-file` (or stdin), never from a flag value.
 - `pdf info`: pages, first page size, metadata (dates in RFC 3339), encryption, form and signatures.
 - `completion` is listed in `toolips list`.

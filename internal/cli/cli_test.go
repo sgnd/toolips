@@ -14,7 +14,10 @@ import (
 	"testing"
 	"time"
 
+	"context"
 	"github.com/sgnd/toolips/internal/out"
+	"github.com/sgnd/toolips/internal/pdfx"
+	"strconv"
 )
 
 func TestExecuteVersionList(t *testing.T) {
@@ -486,5 +489,68 @@ func TestPDFProtectUnlock(t *testing.T) {
 	}
 	if code := runCaptured(t, []string{"pdf", "unlock", locked, "--password-file", pw, "--out", filepath.Join(dir, "open.pdf"), "-o", "json"}); code != 0 {
 		t.Errorf("unlock exit %d", code)
+	}
+}
+
+func TestPDFPages(t *testing.T) {
+	dir := t.TempDir()
+	var imgs []string
+	for _, n := range []int{10, 20, 30} {
+		p := filepath.Join(dir, strconv.Itoa(n)+".png")
+		writePNG(t, p, n, n)
+		imgs = append(imgs, p)
+	}
+	src := filepath.Join(dir, "three.pdf")
+	if code := runCaptured(t, append([]string{"pdf", "from-image", "--out", src}, imgs...)); code != 0 {
+		t.Fatalf("from-image exit %d", code)
+	}
+	info := func(p string) pdfx.Info {
+		t.Helper()
+		i, err := pdfx.ReadInfo(context.Background(), p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return i
+	}
+
+	kept := filepath.Join(dir, "kept.pdf")
+	if code := runCaptured(t, []string{"pdf", "pages", src, "--keep", "3,1", "--out", kept}); code != 0 {
+		t.Fatalf("keep exit %d", code)
+	}
+	if i := info(kept); i.Pages != 2 || i.PageSize != "30x30" {
+		t.Errorf("keep 3,1: %d pages, first %s; want 2 pages, first 30x30", i.Pages, i.PageSize)
+	}
+	removed := filepath.Join(dir, "removed.pdf")
+	if code := runCaptured(t, []string{"pdf", "pages", src, "--remove", "1", "--out", removed}); code != 0 {
+		t.Fatalf("remove exit %d", code)
+	}
+	if i := info(removed); i.Pages != 2 || i.PageSize != "20x20" {
+		t.Errorf("remove 1: %d pages, first %s; want 2 pages, first 20x20", i.Pages, i.PageSize)
+	}
+	for _, flags := range [][]string{nil, {"--keep", "1", "--remove", "2"}} {
+		args := append([]string{"pdf", "pages", src, "-o", "json"}, flags...)
+		if code, _ := runFailure(t, args); code != out.ExitUsage {
+			t.Errorf("%v: exit %d, want usage", flags, code)
+		}
+	}
+}
+
+func TestPDFNumber(t *testing.T) {
+	dir := t.TempDir()
+	img := filepath.Join(dir, "p.png")
+	writePNG(t, img, 100, 100)
+	src := filepath.Join(dir, "a.pdf")
+	if code := runCaptured(t, []string{"pdf", "from-image", img, img, "--out", src}); code != 0 {
+		t.Fatalf("from-image exit %d", code)
+	}
+	dst := filepath.Join(dir, "n.pdf")
+	if code := runCaptured(t, []string{"pdf", "number", src, "--text", "%p of %P", "--position", "br", "--out", dst}); code != 0 {
+		t.Fatalf("number exit %d", code)
+	}
+	if _, err := os.Stat(dst); err != nil {
+		t.Fatal(err)
+	}
+	if code, _ := runFailure(t, []string{"pdf", "number", src, "--position", "middle", "-o", "json"}); code != out.ExitUsage {
+		t.Errorf("bad position: exit %d", code)
 	}
 }

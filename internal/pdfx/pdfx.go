@@ -151,3 +151,62 @@ func DefaultOut(inPath, suffix, ext string) string {
 	}
 	return filepath.Join(dir, base+suffix+ext)
 }
+
+// KeepPages writes the selected pages of inFile, in the order given, to
+// outFile ("3,1-2" puts page 3 first).
+func KeepPages(ctx context.Context, inFile, outFile, sel string) error {
+	pages, err := pageList(sel)
+	if err != nil {
+		return err
+	}
+	return api.CollectFile(ctx, inFile, outFile, pages, conf())
+}
+
+// RemovePages writes inFile without the selected pages to outFile.
+func RemovePages(ctx context.Context, inFile, outFile, sel string) error {
+	pages, err := pageList(sel)
+	if err != nil {
+		return err
+	}
+	return api.RemovePagesFile(ctx, inFile, outFile, pages, conf())
+}
+
+func pageList(sel string) ([]string, error) {
+	if strings.TrimSpace(sel) == "" {
+		return nil, fmt.Errorf("page selection is empty")
+	}
+	return api.ParsePageSelection(sel)
+}
+
+// NumberPositions are the places a page number can go: bottom or top, then
+// left, center or right.
+var NumberPositions = []string{"bl", "bc", "br", "tl", "tc", "tr"}
+
+// NumberPages stamps a page number on the selected pages. In text, %p is
+// the page number and %P the page count ("%p of %P").
+func NumberPages(ctx context.Context, inFile, outFile, text, pos string, pages []string) error {
+	if text == "" {
+		text = "%p"
+	}
+	ok := false
+	for _, p := range NumberPositions {
+		ok = ok || p == pos
+	}
+	if !ok {
+		return fmt.Errorf("position must be one of %s (got %q)", strings.Join(NumberPositions, ", "), pos)
+	}
+	offY := 20
+	if pos[0] == 't' {
+		offY = -20
+	}
+	desc := fmt.Sprintf("font:Helvetica, points:10, scale:1 abs, pos:%s, off:0 %d, rot:0, op:1", pos, offY)
+	if err := ensureParent(outFile); err != nil {
+		return err
+	}
+	c := conf()
+	wm, err := api.TextWatermark(ctx, text, desc, true, false, types.POINTS, c)
+	if err != nil {
+		return err
+	}
+	return api.AddWatermarksFile(ctx, inFile, outFile, pages, wm, c)
+}

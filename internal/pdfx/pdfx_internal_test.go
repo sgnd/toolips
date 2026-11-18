@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/pdfcpu/pdfcpu/pkg/api"
 )
 
 func TestConfIsOffline(t *testing.T) {
@@ -65,5 +67,42 @@ func TestProtectUnlock(t *testing.T) {
 	}
 	if err := Protect(ctx, src, locked, ""); err == nil {
 		t.Error("empty password accepted")
+	}
+}
+
+func TestNumberPages(t *testing.T) {
+	dir := t.TempDir()
+	img := filepath.Join(dir, "p.png")
+	f, err := os.Create(img)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := png.Encode(f, image.NewGray(image.Rect(0, 0, 200, 200))); err != nil {
+		t.Fatal(err)
+	}
+	_ = f.Close()
+	ctx := context.Background()
+	src := filepath.Join(dir, "a.pdf")
+	if err := FromImage(ctx, []string{img, img}, src); err != nil {
+		t.Fatal(err)
+	}
+	numbered := filepath.Join(dir, "n.pdf")
+	if err := NumberPages(ctx, src, numbered, "%p of %P", "bc", nil); err != nil {
+		t.Fatal(err)
+	}
+	r, err := os.Open(numbered)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer r.Close()
+	pi, err := api.PDFInfo(ctx, r, numbered, nil, false, conf())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !pi.Watermarked || pi.PageCount != 2 {
+		t.Errorf("numbered: watermarked=%v pages=%d", pi.Watermarked, pi.PageCount)
+	}
+	if err := NumberPages(ctx, src, filepath.Join(dir, "x.pdf"), "", "middle", nil); err == nil {
+		t.Error("bad position accepted")
 	}
 }
