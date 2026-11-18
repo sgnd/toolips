@@ -83,7 +83,7 @@ func newRoot() *cobra.Command {
 checks. For you and your AI agent.
 
 Private: pdf, image and secret commands work on local files only and never
-use the network. Only tls, headers and ct connect to the host you name.`,
+use the network. Only tls, headers, ct and dns connect to the host you name.`,
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
@@ -114,7 +114,7 @@ use the network. Only tls, headers and ct connect to the host you name.`,
 	root.PersistentFlags().BoolVar(&g.dryRun, "dry-run", false, "show what would change without writing")
 
 	root.AddCommand(cmdVersion(), cmdList(), cmdGuide())
-	root.AddCommand(cmdPDF(), cmdImage(), cmdTLS(), cmdHeaders(), cmdSecret(), cmdCT())
+	root.AddCommand(cmdPDF(), cmdImage(), cmdTLS(), cmdHeaders(), cmdSecret(), cmdCT(), cmdDNS())
 	root.InitDefaultCompletionCmd()
 	markUsageErrors(root)
 	return root

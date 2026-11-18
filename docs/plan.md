@@ -42,7 +42,7 @@ yet. Every item must run locally in pure Go (no CGO). Priority: A first
 | 1.17 | `pdf number`: add page numbers (pdfcpu `stamp`) | iLovePDF Page numbers | A | done |
 | 1.18 | Read WebP input (`golang.org/x/image/webp`, decode only) and BMP/TIFF input | iLoveIMG, Squoosh | A | done |
 | 1.19 | `image strip`: remove EXIF and GPS metadata | photo privacy sites | A | done |
-| 1.20 | `dns check`: A, MX, SPF, DMARC, CAA records of a domain (network) | MXToolbox | B | open |
+| 1.20 | `dns check`: A, MX, SPF, DMARC, CAA records of a domain (network) | MXToolbox | B | done, without CAA: Go's resolver cannot ask for CAA; see 1.29 |
 | 1.21 | `hash`: SHA-256 and other checksums of files, verify against a sum | online hash sites | B | open |
 | 1.22 | `qr make`: QR code PNG from text or a URL | QR code generators | B | open |
 | 1.23 | `jwt decode`: show a token's header and claims, never send it | jwt.io | B | open |
@@ -51,6 +51,7 @@ yet. Every item must run locally in pure Go (no CGO). Priority: A first
 | 1.26 | Render PDF pages to images | iLovePDF PDF to JPG | C | deferred: needs a renderer, which means CGO (see AGENTS.md rule 4) |
 | 1.27 | Office to PDF and PDF to Office | iLovePDF Word to PDF | C | deferred: no pure-Go converter; needs a design decision |
 | 1.28 | Background removal, upscaling, OCR | remove.bg, iLoveIMG | C | deferred: needs ML models; fits the paid apps better |
+| 1.29 | CAA records in `dns check` | MXToolbox | C | open: needs a DNS client library (for example `github.com/miekg/dns`), since Go's resolver has no CAA lookup |
 
 ## Phase 2: paid plan
 

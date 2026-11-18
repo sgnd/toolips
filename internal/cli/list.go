@@ -15,6 +15,7 @@ var catalog = []catalogEntry{
 	{Noun: "headers", Verbs: []string{"check"}, Desc: "Grade HTTP security headers (network)"},
 	{Noun: "secret", Verbs: []string{"scan"}, Desc: "Scan files for keys and tokens"},
 	{Noun: "ct", Verbs: []string{"search"}, Desc: "Search certificate transparency logs (network)"},
+	{Noun: "dns", Verbs: []string{"check"}, Desc: "Check a domain's DNS and mail records (network)"},
 	{Noun: "version", Verbs: nil, Desc: "Print version"},
 	{Noun: "list", Verbs: nil, Desc: "List commands"},
 	{Noun: "guide", Verbs: nil, Desc: "Short how-to for people and agents"},

@@ -4,6 +4,10 @@ All notable changes to toolips are listed here.
 
 ## [Unreleased]
 
+### Added
+
+- `dns check`: A, AAAA, MX, SPF and DMARC records of a domain, with missing MX, SPF or DMARC, several SPF records and DMARC `p=none` flagged. `--server` asks one DNS server instead of the system's.
+
 ### Fixed
 
 - PDF commands refuse files over 512 MiB and streams that decode to more than 256 MiB (`PDF_TOO_LARGE`), so a small PDF bomb cannot exhaust memory.
