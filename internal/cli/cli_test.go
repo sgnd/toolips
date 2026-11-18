@@ -211,3 +211,19 @@ func writePNG(t *testing.T, path string, w, h int) {
 		t.Fatal(err)
 	}
 }
+
+func TestMissingInputIsNotFound(t *testing.T) {
+	missing := filepath.Join(t.TempDir(), "nope.pdf")
+	cases := [][]string{
+		{"pdf", "merge", missing, missing, "-o", "json"},
+		{"pdf", "split", missing, "--dry-run", "-o", "json"},
+		{"pdf", "compress", missing, "-o", "json"},
+		{"pdf", "from-image", missing, "-o", "json"},
+		{"secret", "scan", missing, "-o", "json"},
+	}
+	for _, args := range cases {
+		if code := runCaptured(t, args); code != out.ExitNotFound {
+			t.Errorf("%v: exit %d, want %d", args, code, out.ExitNotFound)
+		}
+	}
+}

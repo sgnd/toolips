@@ -61,6 +61,9 @@ func cmdSecret() *cobra.Command {
 		Short: "Scan files and dirs for keys and tokens (local regex)",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := requireFiles(args); err != nil {
+				return err
+			}
 			res, err := secx.ScanPaths(args)
 			if err != nil {
 				return out.Errf(out.ExitError, "SECRET_SCAN", "check the paths", "%v", err)

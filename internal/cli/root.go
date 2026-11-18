@@ -211,3 +211,14 @@ func (f filesOut) Text() string {
 func newFilesOut(paths []string, note string) filesOut {
 	return filesOut{Files: paths, Count: len(paths), Note: note}
 }
+
+// requireFiles returns a NOT_FOUND error (exit 3) for the first path that does
+// not exist, so a missing input fails the same way in every command.
+func requireFiles(paths []string) error {
+	for _, p := range paths {
+		if _, err := os.Stat(p); err != nil {
+			return out.Errf(out.ExitNotFound, "NOT_FOUND", "check the file path", "%s: no such file", p)
+		}
+	}
+	return nil
+}
