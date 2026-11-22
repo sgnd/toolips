@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const guideText = `toolips: one local command line for your PDFs, images, secret scans
+const guideText = `toolips: one local command line for your PDFs, images, QR codes, secret scans
 and TLS checks. For you and your AI agent.
 
 Grammar: toolips <noun> <verb> [files...] [flags]
@@ -23,6 +23,7 @@ First five minutes:
   toolips image grayscale ./photos --outdir ./gray
   toolips image convert "*.png" --format jpg --outdir ./jpg
   toolips tls check example.com
+  toolips qr make https://example.com --out site.png
 
 Image notes:
   Reads JPG, PNG, GIF, WebP, BMP and TIFF. Writes JPG, PNG and GIF;
@@ -33,12 +34,13 @@ PDF notes:
   pdf to-image extracts embedded images (pure Go). True page
   rasterization needs CGO and is not included.
 
-Agents: always pass -o json (or pipe stdout). Read error.hint on failure.
+Agents: run toolips guide install once, so Claude Code, Codex, Cursor and
+Gemini CLI use toolips by themselves. Always pass -o json (or pipe stdout). Read error.hint on failure.
 Exit codes: 0 ok, 1 error, 2 usage, 3 not found, 4 network.
 `
 
 func cmdGuide() *cobra.Command {
-	return &cobra.Command{
+	c := &cobra.Command{
 		Use:   "guide",
 		Short: "Short how-to for people and agents",
 		Args:  cobra.NoArgs,
@@ -46,6 +48,8 @@ func cmdGuide() *cobra.Command {
 			return done(cmd, guideOut{Guide: strings.TrimSpace(guideText)})
 		},
 	}
+	c.AddCommand(guideInstallCmd())
+	return c
 }
 
 type guideOut struct {

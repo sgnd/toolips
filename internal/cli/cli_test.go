@@ -687,3 +687,29 @@ func TestPDFNUpBooklet(t *testing.T) {
 		}
 	}
 }
+
+// TestDNSCheckCLI covers the command's wiring and its error mapping. What the
+// records mean is tested in secx (TestCheckDNS) with a fake resolver.
+func TestDNSCheckCLI(t *testing.T) {
+	pc, err := net.ListenPacket("udp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	addr := pc.LocalAddr().String()
+	pc.Close() // nothing listens there now
+
+	code, env := runFailure(t, []string{"dns", "check", "example.test", "--server", addr, "--timeout", "2s", "-o", "json"})
+	e, _ := env["error"].(map[string]any)
+	if code != out.ExitNetwork || e["code"] != "DNS_CHECK" {
+		t.Errorf("dead server: exit %d error %v", code, e)
+	}
+	data, _ := env["data"].(map[string]any)
+	if data["domain"] != "example.test" {
+		t.Errorf("result should still name the domain: %v", data)
+	}
+
+	code, env = runFailure(t, []string{"dns", "check", "-o", "json"})
+	if e, _ := env["error"].(map[string]any); code != out.ExitUsage || e["code"] != "USAGE" {
+		t.Errorf("no domain: exit %d error %v", code, e)
+	}
+}
