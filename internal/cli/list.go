@@ -20,7 +20,7 @@ var catalog = []catalogEntry{
 	{Noun: "jwt", Verbs: []string{"decode"}, Desc: "Decode a JSON Web Token locally"},
 	{Noun: "version", Verbs: nil, Desc: "Print version"},
 	{Noun: "list", Verbs: nil, Desc: "List commands"},
-	{Noun: "guide", Verbs: nil, Desc: "Short how-to for people and agents"},
+	{Noun: "guide", Verbs: []string{"install"}, Desc: "Short how-to for people and agents; install adds the skill to your agents"},
 	{Noun: "completion", Verbs: []string{"bash", "zsh", "fish", "powershell"}, Desc: "Shell completion script"},
 }
 
