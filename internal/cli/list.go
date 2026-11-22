@@ -18,6 +18,7 @@ var catalog = []catalogEntry{
 	{Noun: "dns", Verbs: []string{"check"}, Desc: "Check a domain's DNS and mail records (network)"},
 	{Noun: "hash", Verbs: []string{"sum", "verify"}, Desc: "Checksum files and check them against a list"},
 	{Noun: "jwt", Verbs: []string{"decode"}, Desc: "Decode a JSON Web Token locally"},
+	{Noun: "qr", Verbs: []string{"make"}, Desc: "Make a QR code PNG from a text or URL"},
 	{Noun: "version", Verbs: nil, Desc: "Print version"},
 	{Noun: "list", Verbs: nil, Desc: "List commands"},
 	{Noun: "guide", Verbs: []string{"install"}, Desc: "Short how-to for people and agents; install adds the skill to your agents"},

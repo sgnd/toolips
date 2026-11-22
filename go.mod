@@ -7,6 +7,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/image v0.48.0
 	golang.org/x/term v0.48.0
+	rsc.io/qr v0.2.0
 )
 
 require (
