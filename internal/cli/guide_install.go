@@ -49,7 +49,7 @@ func guideInstallCmd() *cobra.Command {
 	var project bool
 	c := &cobra.Command{
 		Use:   "install",
-		Short: "Add the toolips skill to Claude Code, Codex, Cursor, Gemini CLI",
+		Short: "Teach Claude Code, Codex, Cursor and Gemini CLI to use toolips",
 		Long: `Teaches Claude Code, Codex, Cursor and Gemini CLI to use toolips.
 Then restart the agent.
 

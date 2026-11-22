@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const guideText = `toolips: one local command line for your PDFs, images, secret scans
+const guideText = `toolips: one local command line for your PDFs, images, QR codes, secret scans
 and TLS checks. For you and your AI agent.
 
 Grammar: toolips <noun> <verb> [files...] [flags]
@@ -23,6 +23,7 @@ First five minutes:
   toolips image grayscale ./photos --outdir ./gray
   toolips image convert "*.png" --format jpg --outdir ./jpg
   toolips tls check example.com
+  toolips qr make https://example.com --out site.png
 
 Image notes:
   Reads JPG, PNG, GIF, WebP, BMP and TIFF. Writes JPG, PNG and GIF;
