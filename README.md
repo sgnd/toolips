@@ -57,7 +57,8 @@ toolips guide install --dry-run  # show where it would write
 
 It writes the toolips skill to `~/.claude/skills/toolips/SKILL.md` (Claude
 Code) and `~/.agents/skills/toolips/SKILL.md` (Codex, Cursor, Gemini CLI and
-others), and nothing else. It sends nothing anywhere. Unlike komando's
+others), and nothing else. It sends nothing anywhere. Untested on Windows
+so far: it is built for Windows but has not been run there. Unlike komando's
 installer it adds no guard hook, because toolips holds no secrets to guard. Run it again after an
 update: a changed file is kept as `.bak`. Agents that read no skills can
 use [AGENTS.md](AGENTS.md).
@@ -93,7 +94,8 @@ File output: `--out` / `--outdir`.
 ## Size and memory
 
 Measured on a Mac with Apple silicon, release build (`make build`,
-`-s -w`), `/usr/bin/time -l`:
+`-s -w`), `/usr/bin/time -l`. Every CI run measures it again on Linux with
+`scripts/measure.sh`; the numbers are in the run's summary.
 
 | What | Result |
 |---|---|
