@@ -58,7 +58,8 @@ skills from: ~/.claude/skills (Claude Code) and ~/.agents/skills (Codex,
 Cursor, Gemini CLI and others). The agent then uses toolips by itself when a
 task needs a PDF, image, checksum, QR code, JWT, TLS, header or DNS check.
 
-It writes only those two files and sends nothing anywhere. Safe to run
+It writes only those two files and sends nothing anywhere. Unlike komando's
+installer it adds no guard hook, because toolips holds no secrets to guard. Safe to run
 again, for example after an update: a changed file is kept as .bak.`,
 		Example: `  toolips guide install             # for every project on this computer
   toolips guide install --project   # only for the folder you are in

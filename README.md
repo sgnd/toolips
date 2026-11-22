@@ -57,7 +57,8 @@ toolips guide install --dry-run  # show where it would write
 
 It writes the toolips skill to `~/.claude/skills/toolips/SKILL.md` (Claude
 Code) and `~/.agents/skills/toolips/SKILL.md` (Codex, Cursor, Gemini CLI and
-others), and nothing else. It sends nothing anywhere. Run it again after an
+others), and nothing else. It sends nothing anywhere. Unlike komando's
+installer it adds no guard hook, because toolips holds no secrets to guard. Run it again after an
 update: a changed file is kept as `.bak`. Agents that read no skills can
 use [AGENTS.md](AGENTS.md).
 
