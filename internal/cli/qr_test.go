@@ -4,6 +4,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -114,5 +115,30 @@ func TestQRMakeDryRunAndOverwrite(t *testing.T) {
 	}
 	if code, _ := runFailure(t, []string{"qr", "make", "y", "--out", out, "--force", "-o", "json"}); code != 0 {
 		t.Errorf("--force exit %d", code)
+	}
+}
+
+// A big code at a big --scale would make an image of hundreds of MB.
+func TestQRMakeCapsImageSide(t *testing.T) {
+	text := strings.Repeat("toolips ", 250) // 2000 bytes: a version 30-ish code
+	c, err := qr.Encode(text, qr.L)
+	if err != nil {
+		t.Fatal(err)
+	}
+	modules := c.Size + 2*qrQuietZone
+	under := qrMaxSide / modules // the largest scale that fits
+	if under < 1 || under >= qrMaxScale {
+		t.Fatalf("test text gives scale %d; pick a bigger text", under)
+	}
+	out := filepath.Join(t.TempDir(), "big.png")
+
+	code, env := runFailure(t, []string{"qr", "make", text, "--level", "L", "--scale", strconv.Itoa(under), "--out", out, "--dry-run", "-o", "json"})
+	if code != 0 {
+		t.Errorf("scale %d (%d px) refused: exit %d %v", under, under*modules, code, env["error"])
+	}
+	code, env = runFailure(t, []string{"qr", "make", text, "--level", "L", "--scale", strconv.Itoa(under + 1), "--out", out, "--dry-run", "-o", "json"})
+	e, _ := env["error"].(map[string]any)
+	if code != 2 || e["code"] != "USAGE" || !strings.Contains(e["message"].(string), "8192") {
+		t.Errorf("scale %d (%d px) not refused: exit %d %v", under+1, (under+1)*modules, code, e)
 	}
 }

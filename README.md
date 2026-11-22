@@ -82,7 +82,7 @@ use [AGENTS.md](AGENTS.md).
 | `ct search` | Certificate transparency (crt.sh) |
 | `dns check` | A, AAAA, MX, SPF and DMARC records, with mail problems flagged |
 | `hash sum / verify` | SHA-256 (or SHA-512, SHA-1, MD5) of files; check a `checksums.txt` |
-| `qr make` | A QR code PNG from a text or URL (pure Go; `--level`, `--scale`) |
+| `qr make` | A QR code PNG from a text or URL (pure Go; `--level`, `--scale`; image at most 8192 pixels a side) |
 | `guide install` | Teach Claude Code, Codex, Cursor and Gemini CLI to use toolips |
 | `jwt decode` | A token's header and claims, with readable times; the token is read from a file or stdin |
 | `version` / `list` / `guide` / `completion` | About toolips, the short playbook, shell completion |

@@ -17,6 +17,7 @@ import (
 const (
 	qrQuietZone = 4    // modules of white around the code, as the QR standard asks
 	qrMaxScale  = 100  // pixels per module
+	qrMaxSide   = 8192 // pixels on each side of the image; about 67 MB in memory
 	qrMaxInput  = 4096 // bytes read from stdin; the largest code holds 2953
 )
 
@@ -39,7 +40,8 @@ func qrMake() *cobra.Command {
 TEXT is the text or URL the code holds. Pass "-" to read it from stdin (first
 line). --level is the error correction: L, M (default), Q or H; a higher level
 survives more damage and makes a bigger code. --scale is the pixels per
-module (default 8). The code has the standard 4-module white border.
+module (default 8); the image may be at most 8192 pixels on a side, so a
+large code needs a smaller scale. The code has the standard 4-module white border.
 The image goes to --out (default qr.png); an existing file stops the command
 unless --force is set. Everything is made on this machine.`,
 		Example: `  toolips qr make https://example.com --out site.png
@@ -74,6 +76,9 @@ unless --force is set. Everything is made on this machine.`,
 			if err != nil {
 				return out.Errf(out.ExitError, "QR_TOO_LONG", "shorten the text, or use --level L", "the text does not fit in a QR code at level %s", strings.ToUpper(level))
 			}
+			if side := (code.Size + 2*qrQuietZone) * scale; side > qrMaxSide {
+				return out.Usage("--scale %d makes an image %d pixels wide; the limit is %d, so use --scale %d or less", scale, side, qrMaxSide, qrMaxSide/(code.Size+2*qrQuietZone))
+			}
 			if g.dryRun {
 				return done(cmd, newFilesOut([]string{outPath}, "would write "+outPath))
 			}
@@ -84,7 +89,7 @@ unless --force is set. Everything is made on this machine.`,
 		},
 	}
 	cmd.Flags().StringVar(&level, "level", "M", "error correction: L, M, Q or H")
-	cmd.Flags().IntVar(&scale, "scale", 8, "pixels per module")
+	cmd.Flags().IntVar(&scale, "scale", 8, "pixels per module (image side at most 8192)")
 	cmd.Flags().String("out", "", "output file path (default qr.png)")
 	cmd.Flags().Bool("force", false, "replace the output file if it exists")
 	return cmd

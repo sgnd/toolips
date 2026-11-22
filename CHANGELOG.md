@@ -10,7 +10,7 @@ All notable changes to toolips are listed here.
 - `hash sum` and `hash verify`: SHA-256, SHA-512, SHA-1 or MD5 checksums of files, and a check of a sha256sum-style list such as a release's `checksums.txt` (`HASH_MISMATCH` when a file changed or is missing).
 - `jwt decode`: a token's header and claims, with `exp`, `iat` and `nbf` as RFC 3339 times and an `expired` flag. The token comes from a file or stdin, and the signature is not checked.
 - `pdf nup` and `pdf booklet`: several pages per sheet (`--per-sheet`), or a booklet to print and fold, on A4 or Letter (`--paper`).
-- `qr make`: a QR code PNG from a text or URL (or `-` for stdin), with `--level` (L, M, Q, H) and `--scale`. Pure Go, using `rsc.io/qr` (BSD-3-Clause).
+- `qr make`: a QR code PNG from a text or URL (or `-` for stdin), with `--level` (L, M, Q, H) and `--scale` (the image may be at most 8192 pixels on a side). Pure Go, using `rsc.io/qr` (BSD-3-Clause).
 - `guide install`: adds the toolips skill for Claude Code (`~/.claude/skills`) and for Codex, Cursor and Gemini CLI (`~/.agents/skills`). `--project` installs into the current folder, `--dry-run` shows the plan, and a changed file is kept as `.bak`. It writes those two files and sends nothing anywhere.
 - `skills/toolips/SKILL.md`, `AGENTS.md` and the README list exactly the commands the binary has; a test fails when they drift.
 
