@@ -89,6 +89,20 @@ use [AGENTS.md](AGENTS.md).
 Global flags: `-o text\|json\|auto`, `--pretty`, `--dry-run` (writes).
 File output: `--out` / `--outdir`.
 
+## Size and memory
+
+Measured on a Mac with Apple silicon, release build (`make build`,
+`-s -w`), `/usr/bin/time -l`:
+
+| What | Result |
+|---|---|
+| Binary | 13 MB |
+| `pdf merge` of five PDFs, 53 MB in all | 72 MB peak memory, 0.05 s |
+| `pdf compress` of that 53 MB PDF | 72 MB peak memory, 0.05 s |
+
+The test PDFs hold random image data, so compress cannot shrink them.
+Your files will differ.
+
 ## Build and test
 
 ```sh
