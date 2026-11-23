@@ -5,8 +5,9 @@ Thank you for helping. Please write issues, pull requests and docs in English.
 toolips is open source under the [AGPL-3.0](LICENSE), and is also sold under a
 [commercial license](COMMERCIAL-LICENSE.md) that pays for its work. Before your
 first pull request is merged, please sign the
-[Contributor License Agreement](CLA.md): a bot asks you on the pull request, and
-you sign once by writing a comment. You keep the copyright of what you wrote.
+[Contributor License Agreement](CLA.md): type its
+sentence in the pull request description (every commit author signs), and a
+check looks for it. You keep the copyright of what you wrote.
 
 toolips is a small CLI for PDF, image and everyday security checks, for people
 and AI agents. One static binary, no menus, no accounts.
@@ -49,3 +50,21 @@ make lint     # gofmt, go vet, staticcheck
 1. Run `make lint` and `make test`.
 2. Add a line under `## [Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md) if users will notice.
 3. Open the pull request. CI runs lint, tests and a cross build.
+
+## Merging outside pull requests
+
+For maintainers. When a co-author signs by a comment, re-run the CLA check
+on the pull request: it runs on pull request events, not on comments.
+GitHub maps a commit to a login by its email, which it does not verify; the
+person who opened the pull request must still sign, so nothing unsigned is
+merged.
+
+Squash-merge a pull request from outside, and add one trailer per signer to
+the merge commit, so git keeps the CLA record:
+
+```
+CLA-Signed-By: <login> (#<number>, <YYYY-MM-DD>)
+```
+
+Never delete the `cla-signatures` branch: it holds the signatures given to
+the old bot before 2026-11-23.
